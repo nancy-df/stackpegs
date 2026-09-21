@@ -43,3 +43,22 @@ export function ToolTile({ tool, added, showCategory, onAdd }: Props) {
     </button>
   );
 }
+
+export function OtherTile({ open, onClick }: { open: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-expanded={open}
+      onClick={onClick}
+      className={`flex flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed p-2 text-center transition hover:-translate-y-0.5 hover:border-indigo-400 hover:shadow-md ${
+        open ? "border-indigo-400 bg-indigo-50 dark:bg-indigo-950/40" : "border-slate-300 dark:border-slate-600"
+      }`}
+    >
+      <span className="grid size-9 place-items-center rounded-full bg-slate-100 text-xl leading-none text-slate-500 dark:bg-slate-800">
+        +
+      </span>
+      <span className="text-[11px] leading-tight font-medium text-slate-700 dark:text-slate-200">Other</span>
+      <span className="text-[10px] leading-tight text-slate-400">Add your own</span>
+    </button>
+  );
+}

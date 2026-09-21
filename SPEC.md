@@ -52,12 +52,15 @@ Logos are used only to identify each vendor's product. Confirm this fits each ve
 
 ### Other: tools that are not in the catalog
 
-The last entry in the category list, **Other**, lets a visitor add a tool that is not listed. Two ways:
+A visitor can add tools that are not listed, in three places:
 
-1. **By name.** Tool name (up to 40 characters) plus "What kind of tool is it?" (any category, or "Other / not sure"). It appears on the canvas as an initials tile in that category's color. If the name matches a catalog tool (for example "slack"), the catalog tool is used instead and a notice says so.
-2. **Placeholders.** One generic tile per category ("Time Management tool", "Project Management tool", "CRM tool", and so on) for when the visitor does not know or does not want to name the exact tool. Placeholders have a dashed border and a "Placeholder" label.
+1. **An "Other" box at the end of every category's tools.** Clicking it opens a text box under the tiles: "Tool names, separated by commas" (for example `Acme Timer, Foo Tracker`). Each name becomes a tool of the category being browsed, shown as an initials tile in that category's color. The box stays open so more can be added, and closes when the visitor switches category.
+2. **"Other" pinned at the bottom of the category list** (outside the scrolling part, so it is always visible, even on short screens). It opens the same comma-separated box plus a "What kind of tools are they?" picker (any category, or "Other / not sure"), and the placeholders below.
+3. **Search results** end with **Add "<query>" as your own tool**, which opens the Other panel with the name filled in.
 
-The search results also offer **Add "<query>" as your own tool**, which opens this form with the name filled in.
+Rules for names: separated by commas (semicolons and new lines also work), duplicates collapsed, up to 12 per submission, and each must pass the validation in section 7. If any name is invalid, nothing is added and the message names the offending entry. A name that matches a catalog tool (for example "tableau") uses the catalog tool and a notice says so. Names that would exceed the 12-tool canvas limit are skipped with a notice.
+
+**Placeholders.** One generic tile per category ("Time Management tool", "Project Management tool", "CRM tool", and so on) in the Other panel, for when the visitor does not know or does not want to name the exact tool. They have a dashed border and a "Placeholder" label.
 
 The AI is told these tools are user-supplied and may be unfamiliar. For an unknown tool it treats it as a typical tool of the chosen category, prefers "api", "webhook", "file-export" and "automation-platform" over "native", says its connections are typical rather than certain, and does not invent features, vendors or integrations. Custom tools live only in the current session.
 
@@ -154,8 +157,8 @@ Four columns on desktop (1024 px and up), with the canvas as the widest:
 ```
 
 - **Search** spans the top of the two left columns.
-- **Column 1, categories**: a vertical list grouped by area, with a color dot per category, and **Other** last under "Not listed?". All 14 categories plus Other fit without scrolling at 760 px height (it scrolls on shorter screens). The active category is filled with its color. While a search is active no category is highlighted, and clicking a category clears the search and selects it.
-- **Column 2, tools**: the tray, two tiles per row. Search results replace it and show each tool's category. For Other it shows the add-your-own form and the placeholder tiles.
+- **Column 1, categories**: a vertical list grouped by area, with a color dot per category. All 14 fit without scrolling at 760 px height (the list scrolls on shorter screens). **Other** is pinned below the list under "Not listed?" so it never scrolls out of view. The active category is filled with its color. While a search is active no category is highlighted, and clicking a category clears the search and selects it.
+- **Column 2, tools**: the tray, two tiles per row. Search results replace it and show each tool's category. Each category ends with an Other tile that opens the comma-separated box. For Other it shows the add-your-own box and the placeholder tiles.
 - **Column 3, canvas**: takes all remaining width.
 - **Column 4, integration map**: summary, connections list, and the selected node or edge detail.
 

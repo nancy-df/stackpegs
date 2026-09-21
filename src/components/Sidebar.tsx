@@ -1,14 +1,15 @@
 import { useMemo, useState } from "react";
 import { CATEGORIES, CATEGORIES_BY_ID, GROUPS, TOOLS, type Tool } from "../../shared/catalog";
 import { CUSTOM_NAME_MAX } from "../../shared/custom";
+import { AddByNameForm } from "./AddByNameForm";
 import { OtherPanel } from "./OtherPanel";
-import { ToolTile } from "./ToolTile";
+import { OtherTile, ToolTile } from "./ToolTile";
 
 type Props = {
   categoryId: string;
   onSelectCategory: (id: string) => void;
   onAddTool: (toolId: string) => void;
-  onAddCustom: (name: string, categoryId: string) => string | null;
+  onAddCustom: (names: string, categoryId: string) => string | null;
   onCanvas: Set<string>;
 };
 
@@ -28,17 +29,26 @@ function searchTools(query: string): Tool[] {
   return scored.sort((a, b) => a.score - b.score).map((s) => s.tool);
 }
 
+const ROW =
+  "flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors lg:w-full lg:rounded-md lg:border-transparent lg:px-2 lg:py-1 lg:text-left";
+const ROW_IDLE =
+  "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 lg:bg-transparent dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 lg:dark:bg-transparent";
+
 export function Sidebar({ categoryId, onSelectCategory, onAddTool, onAddCustom, onCanvas }: Props) {
   const [query, setQuery] = useState("");
-  const [prefill, setPrefill] = useState({ name: "", nonce: 0 });
+  const [prefill, setPrefill] = useState({ text: "", nonce: 0 });
+  // Which category's inline "Other" box is open (only one at a time).
+  const [otherBoxFor, setOtherBoxFor] = useState<string | null>(null);
+
   const isOther = categoryId === OTHER_ID;
   const category = CATEGORIES.find((c) => c.id === categoryId) ?? CATEGORIES[0]!;
   const searching = query.trim().length > 0;
   const results = useMemo(() => searchTools(query), [query]);
   const tools = searching ? results : isOther ? [] : TOOLS.filter((t) => t.categoryId === category.id);
+  const otherBoxOpen = !searching && !isOther && otherBoxFor === category.id;
 
   const addFromSearch = () => {
-    setPrefill((p) => ({ name: query.trim().slice(0, CUSTOM_NAME_MAX), nonce: p.nonce + 1 }));
+    setPrefill((p) => ({ text: query.trim().slice(0, CUSTOM_NAME_MAX), nonce: p.nonce + 1 }));
     setQuery("");
     onSelectCategory(OTHER_ID);
   };
@@ -88,46 +98,45 @@ export function Sidebar({ categoryId, onSelectCategory, onAddTool, onAddCustom, 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <nav
           aria-label="Categories"
-          className="thin-scroll max-h-[36vh] shrink-0 space-y-2 overflow-y-auto border-b border-slate-200 p-2.5 lg:max-h-none lg:w-[184px] lg:border-r lg:border-b-0 dark:border-slate-800"
+          className="flex max-h-[36vh] shrink-0 flex-col border-b border-slate-200 lg:max-h-none lg:w-[184px] lg:border-r lg:border-b-0 dark:border-slate-800"
         >
-          <h2 className="px-1 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-            1. Category
-          </h2>
-          {GROUPS.map((group) => (
-            <div key={group.id}>
-              <div className="mb-1 px-1 text-[11px] font-medium text-slate-400">{group.label}</div>
-              <div className="flex flex-wrap gap-1.5 lg:flex-col lg:gap-0.5">
-                {CATEGORIES.filter((c) => c.groupId === group.id).map((c) => {
-                  const active = !searching && !isOther && c.id === category.id;
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => {
-                        setQuery("");
-                        onSelectCategory(c.id);
-                      }}
-                      className={`flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors lg:w-full lg:rounded-md lg:border-transparent lg:px-2 lg:py-1 lg:text-left ${
-                        active
-                          ? "text-white"
-                          : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 lg:bg-transparent dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 lg:dark:bg-transparent"
-                      }`}
-                      style={active ? { background: c.color, borderColor: c.color } : undefined}
-                    >
-                      <span
-                        className="size-2 shrink-0 rounded-full"
-                        style={{ background: active ? "#fff" : c.color }}
-                        aria-hidden="true"
-                      />
-                      <span className="truncate">{c.label}</span>
-                    </button>
-                  );
-                })}
+          <div className="thin-scroll min-h-0 flex-1 space-y-2 overflow-y-auto p-2.5">
+            <h2 className="px-1 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+              1. Category
+            </h2>
+            {GROUPS.map((group) => (
+              <div key={group.id}>
+                <div className="mb-1 px-1 text-[11px] font-medium text-slate-400">{group.label}</div>
+                <div className="flex flex-wrap gap-1.5 lg:flex-col lg:gap-0.5">
+                  {CATEGORIES.filter((c) => c.groupId === group.id).map((c) => {
+                    const active = !searching && !isOther && c.id === category.id;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => {
+                          setQuery("");
+                          onSelectCategory(c.id);
+                        }}
+                        className={`${ROW} ${active ? "text-white" : ROW_IDLE}`}
+                        style={active ? { background: c.color, borderColor: c.color } : undefined}
+                      >
+                        <span
+                          className="size-2 shrink-0 rounded-full"
+                          style={{ background: active ? "#fff" : c.color }}
+                          aria-hidden="true"
+                        />
+                        <span className="truncate">{c.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
-          <div>
+            ))}
+          </div>
+
+          <div className="shrink-0 border-t border-slate-200 p-2.5 dark:border-slate-800">
             <div className="mb-1 px-1 text-[11px] font-medium text-slate-400">Not listed?</div>
             <button
               type="button"
@@ -136,10 +145,8 @@ export function Sidebar({ categoryId, onSelectCategory, onAddTool, onAddCustom, 
                 setQuery("");
                 onSelectCategory(OTHER_ID);
               }}
-              className={`flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors lg:w-full lg:rounded-md lg:border-transparent lg:px-2 lg:py-1 lg:text-left ${
-                !searching && isOther
-                  ? "border-slate-700 bg-slate-700 text-white"
-                  : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 lg:bg-transparent dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 lg:dark:bg-transparent"
+              className={`${ROW} ${
+                !searching && isOther ? "border-slate-700 bg-slate-700 text-white" : ROW_IDLE
               }`}
             >
               <span className="grid size-2 shrink-0 place-items-center text-[13px] leading-none" aria-hidden="true">
@@ -154,7 +161,7 @@ export function Sidebar({ categoryId, onSelectCategory, onAddTool, onAddCustom, 
           {isOther && !searching ? (
             <OtherPanel
               key={prefill.nonce}
-              initialName={prefill.name}
+              initialText={prefill.text}
               onCanvas={onCanvas}
               onAddCustom={onAddCustom}
               onAddTool={onAddTool}
@@ -169,7 +176,8 @@ export function Sidebar({ categoryId, onSelectCategory, onAddTool, onAddCustom, 
                   ? `${results.length} ${results.length === 1 ? "tool matches" : "tools match"} "${query.trim()}".`
                   : `${category.label}: ${tools.length} tools. Drag to the canvas, or click to add.`}
               </p>
-              {tools.length > 0 && (
+
+              {(tools.length > 0 || !searching) && (
                 <div className="grid grid-cols-3 gap-2 lg:grid-cols-2">
                   {tools.map((tool) => (
                     <ToolTile
@@ -180,8 +188,28 @@ export function Sidebar({ categoryId, onSelectCategory, onAddTool, onAddCustom, 
                       onAdd={() => onAddTool(tool.id)}
                     />
                   ))}
+                  {!searching && (
+                    <OtherTile
+                      open={otherBoxOpen}
+                      onClick={() => setOtherBoxFor(otherBoxOpen ? null : category.id)}
+                    />
+                  )}
                 </div>
               )}
+
+              {otherBoxOpen && (
+                <div className="mt-3 rounded-xl border border-indigo-200 bg-indigo-50/50 p-3 dark:border-indigo-900 dark:bg-indigo-950/20">
+                  <h3 className="mb-0.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                    Add {category.label} tools
+                  </h3>
+                  <p className="mb-2.5 text-[11px] text-slate-500 dark:text-slate-400">
+                    Not in the list? Type the names below. The AI treats unfamiliar ones as typical{" "}
+                    {category.label.toLowerCase()} tools.
+                  </p>
+                  <AddByNameForm key={category.id} fixedCategoryId={category.id} autoFocus onAdd={onAddCustom} />
+                </div>
+              )}
+
               {searching && (
                 <div className="mt-3 rounded-xl border border-dashed border-slate-300 p-3 text-center dark:border-slate-700">
                   <p className="text-xs text-slate-500 dark:text-slate-400">

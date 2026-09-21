@@ -23,6 +23,20 @@ const PLACEHOLDER_NAMES: Record<string, string> = {
   finance: "Accounting / Finance tool",
 };
 
+// Splits "A, B, C" (commas, semicolons or new lines) into unique, trimmed names.
+export function splitToolNames(raw: string): string[] {
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const part of raw.split(/[,;\n]+/)) {
+    const name = part.replace(/\s+/g, " ").trim();
+    const key = name.toLowerCase();
+    if (!name || seen.has(key)) continue;
+    seen.add(key);
+    names.push(name);
+  }
+  return names;
+}
+
 // Returns the cleaned name, or null when it is empty, too long, or has characters we do not allow.
 export function normalizeCustomName(raw: string): string | null {
   const name = raw.normalize("NFC").replace(/\s+/g, " ").trim();

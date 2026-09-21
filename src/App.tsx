@@ -12,7 +12,7 @@ import {
   type XYPosition,
 } from "@xyflow/react";
 import { CATEGORIES, CATEGORIES_BY_ID, MAX_CANVAS_TOOLS, TOOLS } from "../shared/catalog";
-import { CUSTOM_NAME_MAX, customToolId, normalizeCustomName } from "../shared/custom";
+import { CUSTOM_NAME_MAX, customToolId, normalizeCustomName, splitToolNames } from "../shared/custom";
 import { DetailPanel, edgeId } from "./components/DetailPanel";
 import { IntegrationEdgeView, type IntegrationFlowEdge } from "./components/IntegrationEdgeView";
 import { Sidebar } from "./components/Sidebar";
@@ -103,53 +103,96 @@ function Workspace() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [integrations.version]);
 
-  const addTool = useCallback(
-    (toolId: string, dropPosition?: XYPosition) => {
-      const tool = getTool(toolId);
-      if (!tool) return;
-      if (onCanvas.has(toolId)) {
-        setNotice(`${tool.name} is already on the canvas.`);
-        setNodes((nds) => nds.map((n) => ({ ...n, selected: n.id === toolId })));
-        return;
+  // Adds several tools in one go, each at its own free spot. Returns any notices for the visitor.
+  const addTools = useCallback(
+    (toolIds: string[], dropPosition?: XYPosition): string[] => {
+      let current: ToolFlowNode[] = nodes;
+      const added: ToolFlowNode[] = [];
+      const alreadyThere: string[] = [];
+      let skippedForLimit = 0;
+
+      for (const toolId of new Set(toolIds)) {
+        const tool = getTool(toolId);
+        if (!tool) continue;
+        if (current.some((n) => n.id === toolId)) {
+          alreadyThere.push(tool.name);
+          continue;
+        }
+        if (current.length >= MAX_CANVAS_TOOLS) {
+          skippedForLimit++;
+          continue;
+        }
+        const position = dropPosition
+          ? { x: dropPosition.x - NODE_W / 2, y: dropPosition.y - 36 }
+          : freeSpot(current);
+        const node: ToolFlowNode = { id: toolId, type: "tool", position, data: { toolId } };
+        current = [...current, node];
+        added.push(node);
       }
-      if (nodes.length >= MAX_CANVAS_TOOLS) {
-        setNotice(`The canvas holds up to ${MAX_CANVAS_TOOLS} tools. Remove one to add another.`);
-        return;
+
+      if (added.length > 0) {
+        setNodes((nds) => [...nds.map((n) => (n.selected ? { ...n, selected: false } : n)), ...added]);
+        setSelectedEdgeId(null);
+      } else if (alreadyThere.length > 0 && toolIds.length === 1) {
+        setNodes((nds) => nds.map((n) => ({ ...n, selected: n.id === toolIds[0] })));
       }
-      const position = dropPosition
-        ? { x: dropPosition.x - NODE_W / 2, y: dropPosition.y - 36 }
-        : freeSpot(nodes);
-      setNodes((nds) => [
-        ...nds.map((n) => (n.selected ? { ...n, selected: false } : n)),
-        { id: toolId, type: "tool", position, data: { toolId } },
-      ]);
-      setSelectedEdgeId(null);
+
+      const notices: string[] = [];
+      if (alreadyThere.length > 0) {
+        notices.push(`${alreadyThere.join(", ")} ${alreadyThere.length === 1 ? "is" : "are"} already on the canvas.`);
+      }
+      if (skippedForLimit > 0) {
+        notices.push(`The canvas holds up to ${MAX_CANVAS_TOOLS} tools. Remove one to add more.`);
+      }
+      if (notices.length > 0) setNotice(notices.join(" "));
+      return notices;
     },
-    [nodes, onCanvas, setNodes],
+    [nodes, setNodes],
   );
 
-  const addCustomTool = useCallback(
-    (rawName: string, categoryId: string): string | null => {
-      if (!rawName.trim()) return "Enter the tool's name.";
-      const name = normalizeCustomName(rawName);
-      if (!name) {
-        return `Enter a name up to ${CUSTOM_NAME_MAX} characters, using letters, numbers, spaces and . & + - ' / _ ( ) only.`;
-      }
+  const addTool = useCallback(
+    (toolId: string, dropPosition?: XYPosition) => {
+      addTools([toolId], dropPosition);
+    },
+    [addTools],
+  );
+
+  // Takes "Acme Timer, Foo Tracker" and adds each name. Returns an error message, or null on success.
+  const addCustomTools = useCallback(
+    (raw: string, categoryId: string): string | null => {
+      const parts = splitToolNames(raw);
+      if (parts.length === 0) return "Type at least one tool name. Separate several with commas.";
+      if (parts.length > MAX_CANVAS_TOOLS) return `Add up to ${MAX_CANVAS_TOOLS} tools at a time.`;
       if (!CATEGORIES_BY_ID[categoryId]) return "Choose what kind of tool it is.";
 
-      const lower = name.toLowerCase();
-      const slug = customToolId(name, categoryId).split(":").pop();
-      const listed = TOOLS.find((t) => t.name.toLowerCase() === lower || t.id === slug);
-      if (listed) {
-        addTool(listed.id);
-        setNotice(`${listed.name} is already in the catalog, so I used that one.`);
-        return null;
+      const invalid = parts.filter((part) => !normalizeCustomName(part));
+      if (invalid.length > 0) {
+        const shown = invalid.map((n) => `"${n.slice(0, CUSTOM_NAME_MAX)}"`).join(", ");
+        return `Can't use ${shown}. Names can be up to ${CUSTOM_NAME_MAX} characters: letters, numbers, spaces and . & + - ' / _ ( ) only.`;
       }
 
-      addTool(registerCustomTool(name, categoryId).id);
+      const ids: string[] = [];
+      const usedCatalog: string[] = [];
+      for (const part of parts) {
+        const name = normalizeCustomName(part)!;
+        const slug = customToolId(name, categoryId).split(":").pop();
+        const listed = TOOLS.find((t) => t.name.toLowerCase() === name.toLowerCase() || t.id === slug);
+        if (listed) {
+          ids.push(listed.id);
+          usedCatalog.push(listed.name);
+        } else {
+          ids.push(registerCustomTool(name, categoryId).id);
+        }
+      }
+
+      const notices = addTools(ids);
+      if (usedCatalog.length > 0) {
+        notices.unshift(`${usedCatalog.join(", ")} ${usedCatalog.length === 1 ? "is" : "are"} in the catalog, so I used that.`);
+        setNotice(notices.join(" "));
+      }
       return null;
     },
-    [addTool],
+    [addTools],
   );
 
   const onDragOver = useCallback((e: DragEvent) => {
@@ -214,7 +257,7 @@ function Workspace() {
           categoryId={categoryId}
           onSelectCategory={setCategoryId}
           onAddTool={(id) => addTool(id)}
-          onAddCustom={addCustomTool}
+          onAddCustom={addCustomTools}
           onCanvas={onCanvas}
         />
 
