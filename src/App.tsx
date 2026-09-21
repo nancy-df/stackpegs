@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type DragEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import {
   Background,
   Controls,
@@ -7,7 +7,6 @@ import {
   ReactFlowProvider,
   useNodesState,
   useReactFlow,
-  useStore,
   type XYPosition,
 } from "@xyflow/react";
 import { CATEGORIES, CATEGORIES_BY_ID, MAX_CANVAS_TOOLS, TOOLS } from "../shared/catalog";
@@ -56,8 +55,7 @@ function Workspace() {
   const showLeft = leftOpen || !isDesktop;
   const showRight = rightOpen || !isDesktop;
   const { screenToFlowPosition, fitView } = useReactFlow();
-  const canvasWidth = useStore((s) => s.width);
-  const canvasHeight = useStore((s) => s.height);
+  const canvasRef = useRef<HTMLElement>(null);
 
   const presentKey = nodes.map((n) => n.id).sort().join(",");
   const toolIds = useMemo(() => (presentKey ? presentKey.split(",") : []), [presentKey]);
@@ -104,17 +102,28 @@ function Workspace() {
 
   const runLayout = useCallback(() => {
     setLayouting(true);
-    const viewport = { width: Math.max(canvasWidth, 300), height: Math.max(canvasHeight, 300) };
+    // Measure the canvas itself: the flow's own size is 0 while the Stack view is showing.
+    const box = canvasRef.current;
+    const viewport = { width: Math.max(box?.clientWidth ?? 0, 300), height: Math.max(box?.clientHeight ?? 0, 300) };
     setNodes((nds) => layoutNodes(nds, visibleEdges, viewport));
-    setTimeout(() => fitView({ padding: 0.2, duration: 450, maxZoom: 1.1 }), 60);
+    setTimeout(() => fitView({ padding: 0.12, duration: 450, maxZoom: 1 }), 80);
     setTimeout(() => setLayouting(false), 700);
-  }, [setNodes, visibleEdges, fitView, canvasWidth, canvasHeight]);
+  }, [setNodes, visibleEdges, fitView]);
 
   useEffect(() => {
-    if (integrations.version > 0 && visibleEdges.length > 0) runLayout();
+    if (view === "free" && integrations.version > 0 && visibleEdges.length > 0) runLayout();
     // Re-arrange only when a new integration result arrives.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [integrations.version]);
+
+  // Opening the Free view arranges the tools left to right and fits them to the screen.
+  useEffect(() => {
+    if (view !== "free" || nodes.length < 2) return;
+    const timer = setTimeout(runLayout, 60);
+    return () => clearTimeout(timer);
+    // Only when the view changes, so manual dragging is not undone by unrelated updates.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view]);
 
   // Adds several tools in one go, each at its own free spot. Returns any notices for the visitor.
   const addTools = useCallback(
@@ -303,7 +312,7 @@ function Workspace() {
           onCanvas={onCanvas}
         />
 
-        <section className="@container relative min-h-[420px] flex-1 lg:min-h-0" onDragOver={onDragOver} onDrop={onDrop}>
+        <section ref={canvasRef} className="@container relative min-h-[420px] flex-1 lg:min-h-0" onDragOver={onDragOver} onDrop={onDrop}>
           {view === "stack" ? (
             <StackView
               toolIds={orderedToolIds}

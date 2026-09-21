@@ -116,7 +116,7 @@ Both views:
 - **Edges** are derived from the latest integration result, filtered to tools currently on the canvas. Removing a tool removes its edges immediately, with no refetch needed for the display.
 - **Edge style**: color and label by integration type; arrowhead(s) show direction (two heads for two-way).
 - **Edge routing**: straight when clear; if the straight line would cross another node, it curves sideways by the smallest offset that avoids it.
-- **Auto-layout** (dagre) runs whenever a new result arrives, and on demand. It computes both left-to-right and top-to-bottom layouts and keeps the one that fits the visible canvas at the larger zoom.
+- **Auto-layout (Free view).** Always flows left to right, so the diagram is wide rather than tall. Dagre orders the tools into steps with few crossings; a step with many tools is then wrapped into extra columns instead of one tall column, and among the arrangements that are at least 1.4 times wider than tall the one that fits the canvas at the largest zoom is used. Tools with no connections form a wide grid. It runs when the Free view is opened (so it always fits the current canvas, even when you switch from the Stack view), when a new result arrives while in the Free view, and on demand with **Auto-layout**; after each run the view zooms to fit every tool. Manual dragging is kept until the next run. A narrow canvas (side panels open) shows the same wide layout at a smaller zoom, so collapsing the panels gives a larger picture.
 - Empty state: a large centered message, "Drag the tool logos here to start your integration map", with a smaller line below ("Add two or more tools to see how they integrate."). It disappears once a tool is on the canvas.
 
 ## 6. Data Model
