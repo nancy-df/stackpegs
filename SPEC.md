@@ -20,7 +20,7 @@ StackPegs is a web app that helps someone visually explore how popular SaaS tool
 
 ## 3. Categories & Tools
 
-13 categories in 4 groups, about 6-10 tools each (about 100 tools). The list is static and lives in `shared/catalog.ts`.
+14 categories in 5 groups, about 6-10 tools each (about 110 tools). The list is static and lives in `shared/catalog.ts`.
 
 | Group | Category | Tools |
 |---|---|---|
@@ -34,8 +34,9 @@ StackPegs is a web app that helps someone visually explore how popular SaaS tool
 | | Time Management | Toggl Track, Clockify, RescueTime, Harvest, TimeCamp, Calendly |
 | | Task Manager | Todoist, Microsoft To Do, Things, TickTick, Any.do, Notion |
 | | Communication | Slack, Microsoft Teams, Zoom, Discord, Google Chat, Webex |
-| Operations | Automation / iPaaS | Zapier, Make, Workato, n8n, Power Automate, IFTTT |
-| | Customer Support | Zendesk, Intercom, Freshdesk, Help Scout, Gorgias, Front |
+| AI & Automation | AI Tools | ChatGPT, Claude, Gemini, Microsoft Copilot, Perplexity, Mistral AI, GitHub Copilot, Cursor, Otter.ai, Fireflies.ai |
+| | Automation / iPaaS | Zapier, Make, Workato, n8n, Power Automate, IFTTT |
+| Operations | Customer Support | Zendesk, Intercom, Freshdesk, Help Scout, Gorgias, Front |
 | | Accounting & Finance | QuickBooks, Xero, FreshBooks, Stripe, NetSuite, Sage |
 
 Adding a tool or category means editing `shared/catalog.ts` and running `npm run gen:icons`.
@@ -44,7 +45,7 @@ Adding a tool or category means editing `shared/catalog.ts` and running `npm run
 
 Three tiers, tried in order:
 1. **Bundled SVG** from the `simple-icons` package (current release, with an older release filling brands upstream has since removed, such as Salesforce, Slack, Tableau, Power BI). Generated into `src/data/icons.generated.ts` by `scripts/gen-icons.mjs`. No runtime network dependency.
-2. **Favicon lookup** by the tool's domain (Google's favicon service) for brands not in either package (about 28 tools).
+2. **Favicon lookup** by the tool's domain (Google's favicon service) for brands not in either package (about 31 tools).
 3. **Monogram tile** (initials on a colored square) if the favicon fails to load.
 
 Logos are used only to identify each vendor's product. Confirm this fits each vendor's brand guidelines before any public launch.

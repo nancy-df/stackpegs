@@ -23,6 +23,7 @@ export const GROUPS: CategoryGroup[] = [
   { id: "data", label: "Data & Analytics" },
   { id: "sales", label: "Sales & Marketing" },
   { id: "work", label: "Work & Productivity" },
+  { id: "ai", label: "AI & Automation" },
   { id: "ops", label: "Operations" },
 ];
 
@@ -37,7 +38,8 @@ export const CATEGORIES: Category[] = [
   { id: "time", label: "Time Management", groupId: "work", color: "#eab308" },
   { id: "task", label: "Task Manager", groupId: "work", color: "#06b6d4" },
   { id: "comm", label: "Communication", groupId: "work", color: "#a855f7" },
-  { id: "automation", label: "Automation / iPaaS", groupId: "ops", color: "#ef4444" },
+  { id: "ai-tools", label: "AI Tools", groupId: "ai", color: "#d946ef" },
+  { id: "automation", label: "Automation / iPaaS", groupId: "ai", color: "#ef4444" },
   { id: "support", label: "Customer Support", groupId: "ops", color: "#3b82f6" },
   { id: "finance", label: "Accounting & Finance", groupId: "ops", color: "#84cc16" },
 ];
@@ -142,6 +144,18 @@ export const TOOLS: Tool[] = [
   t("discord", "Discord", "comm", "https://discord.com", "Community chat and voice."),
   t("google-chat", "Google Chat", "comm", "https://chat.google.com", "Messaging in Google Workspace.", "googlechat"),
   t("webex", "Webex", "comm", "https://www.webex.com", "Cisco's meetings and messaging platform."),
+
+  // AI tools
+  t("chatgpt", "ChatGPT", "ai-tools", "https://chatgpt.com", "OpenAI's AI assistant, with connectors, plugins and an API.", "openai"),
+  t("claude", "Claude", "ai-tools", "https://claude.ai", "Anthropic's AI assistant, with an API, connectors and MCP integrations."),
+  t("gemini", "Gemini", "ai-tools", "https://gemini.google.com", "Google's AI assistant, built into Workspace and available through an API.", "googlegemini"),
+  t("copilot", "Microsoft Copilot", "ai-tools", "https://copilot.microsoft.com", "Microsoft's AI assistant across Microsoft 365, Teams and Windows.", "microsoftcopilot"),
+  t("perplexity", "Perplexity", "ai-tools", "https://www.perplexity.ai", "AI answer engine that searches the web and cites sources."),
+  t("mistral", "Mistral AI", "ai-tools", "https://mistral.ai", "AI models and the Le Chat assistant, also available through an API.", "mistralai"),
+  t("github-copilot", "GitHub Copilot", "ai-tools", "https://github.com/features/copilot", "AI coding assistant inside editors and on GitHub.", "githubcopilot"),
+  t("cursor", "Cursor", "ai-tools", "https://cursor.com", "AI-powered code editor."),
+  t("otter", "Otter.ai", "ai-tools", "https://otter.ai", "AI meeting notes, transcription and summaries.", "otterdotai"),
+  t("fireflies", "Fireflies.ai", "ai-tools", "https://fireflies.ai", "AI meeting recorder and note taker that syncs to CRMs and project tools."),
 
   // Automation / iPaaS
   t("zapier", "Zapier", "automation", "https://zapier.com", "No-code automation connecting thousands of apps."),
