@@ -1,4 +1,5 @@
 import { CATEGORIES_BY_ID } from "../../shared/catalog";
+import { LAYERS } from "../../shared/layers";
 import type { IntegrationEdge } from "../../shared/schema";
 import type { IntegrationStatus } from "../hooks/useIntegrations";
 import { TYPE_META } from "../lib/integrationTypes";
@@ -8,6 +9,8 @@ import { ToolLogo } from "./ToolLogo";
 export const edgeId = (e: Pick<IntegrationEdge, "source" | "target">) => `${e.source}|${e.target}`;
 
 type Props = {
+  // Set in the stack view so the selected tool can be moved to another layer.
+  layerControl?: { value: string; onChange: (layerId: string) => void };
   open: boolean;
   toolIds: string[];
   edges: IntegrationEdge[];
@@ -116,6 +119,22 @@ export function DetailPanel(props: Props) {
           >
             Visit website
           </a>
+        )}
+        {props.layerControl && (
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold text-slate-500 uppercase">Layer</span>
+            <select
+              value={props.layerControl.value}
+              onChange={(e) => props.layerControl?.onChange(e.target.value)}
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+            >
+              {LAYERS.map((layer) => (
+                <option key={layer.id} value={layer.id}>
+                  {layer.title}
+                </option>
+              ))}
+            </select>
+          </label>
         )}
         <div>
           <h3 className="mb-1.5 text-xs font-semibold text-slate-500 uppercase">Connections on this canvas</h3>

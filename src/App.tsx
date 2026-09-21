@@ -3,7 +3,6 @@ import {
   Background,
   Controls,
   MarkerType,
-  Panel,
   ReactFlow,
   ReactFlowProvider,
   useNodesState,
@@ -13,10 +12,12 @@ import {
 } from "@xyflow/react";
 import { CATEGORIES, CATEGORIES_BY_ID, MAX_CANVAS_TOOLS, TOOLS } from "../shared/catalog";
 import { CUSTOM_NAME_MAX, customToolId, normalizeCustomName, splitToolNames } from "../shared/custom";
+import { defaultLayerId } from "../shared/layers";
 import { DetailPanel, edgeId } from "./components/DetailPanel";
 import { GuidanceBar } from "./components/GuidanceBar";
 import { IntegrationEdgeView, type IntegrationFlowEdge } from "./components/IntegrationEdgeView";
 import { Sidebar } from "./components/Sidebar";
+import { StackView } from "./components/StackView";
 import { DRAG_MIME } from "./components/ToolTile";
 import { ToolNode, type ToolFlowNode } from "./components/ToolNode";
 import { PanelToggle } from "./components/PanelToggle";
@@ -47,6 +48,9 @@ function Workspace() {
   const [exporting, setExporting] = useState(false);
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
+  const [view, setView] = useState<"stack" | "free">("stack");
+  const [showAllConnections, setShowAllConnections] = useState(false);
+  const [layerOverrides, setLayerOverrides] = useState<Record<string, string>>({});
   // Panels can only be collapsed in the desktop layout; on narrow screens they always show.
   const isDesktop = useIsDesktop();
   const showLeft = leftOpen || !isDesktop;
@@ -214,9 +218,10 @@ function Workspace() {
       e.preventDefault();
       const toolId = e.dataTransfer.getData(DRAG_MIME);
       if (!toolId) return;
-      addTool(toolId, screenToFlowPosition({ x: e.clientX, y: e.clientY }));
+      // The stack view places tools itself, so only the free canvas needs the drop position.
+      addTool(toolId, view === "free" ? screenToFlowPosition({ x: e.clientX, y: e.clientY }) : undefined);
     },
-    [addTool, screenToFlowPosition],
+    [addTool, screenToFlowPosition, view],
   );
 
   const selectNode = useCallback(
@@ -227,6 +232,32 @@ function Workspace() {
     [setNodes],
   );
 
+  const clearSelection = useCallback(() => {
+    setSelectedEdgeId(null);
+    setNodes((nds) => nds.map((n) => (n.selected ? { ...n, selected: false } : n)));
+  }, [setNodes]);
+
+  const removeTool = useCallback(
+    (toolId: string) => {
+      setNodes((nds) => nds.filter((n) => n.id !== toolId));
+      setSelectedEdgeId(null);
+    },
+    [setNodes],
+  );
+
+  const layerOf = useCallback(
+    (toolId: string) => layerOverrides[toolId] ?? defaultLayerId(getTool(toolId) ?? { categoryId: "other" }),
+    [layerOverrides],
+  );
+
+  const moveToLayer = useCallback((toolId: string, layerId: string) => {
+    setLayerOverrides((prev) => ({ ...prev, [toolId]: layerId }));
+  }, []);
+
+  // Tools in the order they were added; the key keeps the array stable while only selection or positions change.
+  const orderKey = nodes.map((n) => n.id).join(",");
+  const orderedToolIds = useMemo(() => (orderKey ? orderKey.split(",") : []), [orderKey]);
+
   const downloadCanvas = useCallback(async () => {
     setExporting(true);
     try {
@@ -234,6 +265,7 @@ function Workspace() {
         nodes: nodes.map((n) => ({ id: n.id, position: n.position })),
         edges: visibleEdges,
         summary: integrations.result?.summary ?? null,
+        stack: view === "stack" ? { toolIds: orderedToolIds, layerOf } : undefined,
       });
       downloadHtml(html, `stackpegs-integration-map-${new Date().toISOString().slice(0, 10)}.html`);
     } catch {
@@ -241,7 +273,7 @@ function Workspace() {
     } finally {
       setExporting(false);
     }
-  }, [nodes, visibleEdges, integrations.result]);
+  }, [nodes, visibleEdges, integrations.result, view, orderedToolIds, layerOf]);
 
   const clearCanvas = useCallback(() => {
     setNodes([]);
@@ -259,6 +291,31 @@ function Workspace() {
         <p className="hidden text-xs text-slate-500 sm:block dark:text-slate-400">
           See how your tools connect and where the data flows.
         </p>
+        <div
+          role="group"
+          aria-label="Diagram view"
+          className="ml-auto flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400"
+        >
+          <span className="hidden sm:inline">View</span>
+          <div className="flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 dark:border-slate-700 dark:bg-slate-800">
+            {(["stack", "free"] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                aria-pressed={view === mode}
+                title={mode === "stack" ? "Layers, grouped by kind of tool" : "Drag tools anywhere"}
+                onClick={() => setView(mode)}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                  view === mode
+                    ? "bg-indigo-600 text-white"
+                    : "text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700"
+                }`}
+              >
+                {mode === "stack" ? "Stack" : "Free"}
+              </button>
+            ))}
+          </div>
+        </div>
       </header>
 
       <main className="flex min-h-0 flex-1 flex-col lg:flex-row">
@@ -271,75 +328,102 @@ function Workspace() {
           onCanvas={onCanvas}
         />
 
-        <section className="relative min-h-[420px] flex-1 lg:min-h-0" onDragOver={onDragOver} onDrop={onDrop}>
-          <ReactFlow<ToolFlowNode, IntegrationFlowEdge>
-            className={layouting ? "layouting" : undefined}
-            nodes={nodes}
-            edges={flowEdges}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            onNodesChange={onNodesChange}
-            onNodeClick={() => setSelectedEdgeId(null)}
-            onEdgeClick={(_, edge) => selectEdge(edge.id)}
-            onPaneClick={() => setSelectedEdgeId(null)}
-            nodesConnectable={false}
-            elementsSelectable
-            colorMode="system"
-            minZoom={0.3}
-            maxZoom={1.6}
-            fitViewOptions={{ padding: 0.25 }}
-            proOptions={{ hideAttribution: true }}
-          >
-            <Background gap={22} />
-            <Controls showInteractive={false} />
+        <section className="@container relative min-h-[420px] flex-1 lg:min-h-0" onDragOver={onDragOver} onDrop={onDrop}>
+          {view === "stack" ? (
+            <StackView
+              toolIds={orderedToolIds}
+              edges={visibleEdges}
+              layerOf={layerOf}
+              selectedToolId={selectedNodeId}
+              selectedEdgeId={selectedEdgeId}
+              showAll={showAllConnections}
+              onSelectTool={selectNode}
+              onSelectEdge={selectEdge}
+              onClearSelection={clearSelection}
+              onRemoveTool={removeTool}
+            />
+          ) : (
+            <ReactFlow<ToolFlowNode, IntegrationFlowEdge>
+              className={layouting ? "layouting" : undefined}
+              nodes={nodes}
+              edges={flowEdges}
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              onNodesChange={onNodesChange}
+              onNodeClick={() => setSelectedEdgeId(null)}
+              onEdgeClick={(_, edge) => selectEdge(edge.id)}
+              onPaneClick={() => setSelectedEdgeId(null)}
+              nodesConnectable={false}
+              elementsSelectable
+              colorMode="system"
+              minZoom={0.3}
+              maxZoom={1.6}
+              fitViewOptions={{ padding: 0.25 }}
+              proOptions={{ hideAttribution: true }}
+            >
+              <Background gap={22} />
+              <Controls showInteractive={false} />
+            </ReactFlow>
+          )}
 
-            <Panel position="top-right" className="flex gap-1.5 !mr-9">
+          <div className="absolute top-[15px] right-9 z-10 flex gap-1.5">
+            {view === "stack" ? (
+              <ToolbarButton
+                aria-pressed={showAllConnections}
+                onClick={() => setShowAllConnections((v) => !v)}
+                disabled={visibleEdges.length === 0}
+                className={showAllConnections ? "!border-indigo-500 !bg-indigo-50 !text-indigo-700" : undefined}
+              >
+                All connections
+              </ToolbarButton>
+            ) : (
               <ToolbarButton onClick={runLayout} disabled={nodes.length < 2}>
                 Auto-layout
               </ToolbarButton>
-              <ToolbarButton onClick={downloadCanvas} disabled={nodes.length === 0 || exporting}>
-                {exporting ? "Preparing..." : "Download HTML"}
-              </ToolbarButton>
-              <ToolbarButton onClick={clearCanvas} disabled={nodes.length === 0}>
-                Clear
-              </ToolbarButton>
-            </Panel>
-
-            {(notice || nodes.length >= 2) && (
-              <Panel position="bottom-center" className="flex w-[min(480px,calc(100%-104px))] flex-col gap-2">
-                {busy && (
-                  <div className="flex items-center gap-2 self-center rounded-full bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-lg">
-                    <span className="size-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                    Mapping integrations...
-                  </div>
-                )}
-                {integrations.status === "error" && !showRight && (
-                  <div
-                    role="alert"
-                    className="flex max-w-full items-center gap-2 self-center rounded-2xl bg-red-700 py-1.5 pr-1.5 pl-3 text-xs font-medium text-white shadow-lg"
-                  >
-                    <span>{integrations.error ?? "Something went wrong."}</span>
-                    <button
-                      type="button"
-                      onClick={() => integrations.regenerate()}
-                      className="shrink-0 rounded-full bg-white/20 px-2.5 py-0.5 hover:bg-white/30"
-                    >
-                      Retry
-                    </button>
-                  </div>
-                )}
-                {notice && (
-                  <div
-                    role="status"
-                    className="self-center rounded-lg bg-slate-900 px-3 py-2 text-xs text-white shadow-lg"
-                  >
-                    {notice}
-                  </div>
-                )}
-                {nodes.length >= 2 && <GuidanceBar busy={busy} onRegenerate={integrations.regenerate} />}
-              </Panel>
             )}
-          </ReactFlow>
+            <ToolbarButton onClick={downloadCanvas} disabled={nodes.length === 0 || exporting}>
+              {exporting ? "Preparing..." : (
+                <>
+                  Download<span className="hidden @min-[440px]:inline"> HTML</span>
+                </>
+              )}
+            </ToolbarButton>
+            <ToolbarButton onClick={clearCanvas} disabled={nodes.length === 0}>
+              Clear
+            </ToolbarButton>
+          </div>
+
+          {(notice || nodes.length >= 2) && (
+            <div className="absolute bottom-[15px] left-1/2 z-10 flex w-[min(480px,calc(100%-104px))] -translate-x-1/2 flex-col gap-2">
+              {busy && (
+                <div className="flex items-center gap-2 self-center rounded-full bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-lg">
+                  <span className="size-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  Mapping integrations...
+                </div>
+              )}
+              {integrations.status === "error" && !showRight && (
+                <div
+                  role="alert"
+                  className="flex max-w-full items-center gap-2 self-center rounded-2xl bg-red-700 py-1.5 pr-1.5 pl-3 text-xs font-medium text-white shadow-lg"
+                >
+                  <span>{integrations.error ?? "Something went wrong."}</span>
+                  <button
+                    type="button"
+                    onClick={() => integrations.regenerate()}
+                    className="shrink-0 rounded-full bg-white/20 px-2.5 py-0.5 hover:bg-white/30"
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
+              {notice && (
+                <div role="status" className="self-center rounded-lg bg-slate-900 px-3 py-2 text-xs text-white shadow-lg">
+                  {notice}
+                </div>
+              )}
+              {nodes.length >= 2 && <GuidanceBar busy={busy} onRegenerate={integrations.regenerate} />}
+            </div>
+          )}
 
           {nodes.length === 0 && (
             <div className="pointer-events-none absolute inset-0 grid place-items-center p-6 text-center">
@@ -360,6 +444,11 @@ function Workspace() {
         </section>
 
         <DetailPanel
+          layerControl={
+            view === "stack" && selectedNodeId
+              ? { value: layerOf(selectedNodeId), onChange: (layerId) => moveToLayer(selectedNodeId, layerId) }
+              : undefined
+          }
           open={showRight}
           toolIds={toolIds}
           edges={visibleEdges}
