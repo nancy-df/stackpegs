@@ -49,7 +49,7 @@ function Workspace() {
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
   const [view, setView] = useState<"stack" | "free">("stack");
-  const [showAllConnections, setShowAllConnections] = useState(false);
+  const [showAllConnections, setShowAllConnections] = useState(true);
   const [layerOverrides, setLayerOverrides] = useState<Record<string, string>>({});
   // Panels can only be collapsed in the desktop layout; on narrow screens they always show.
   const isDesktop = useIsDesktop();
@@ -291,31 +291,6 @@ function Workspace() {
         <p className="hidden text-xs text-slate-500 sm:block dark:text-slate-400">
           See how your tools connect and where the data flows.
         </p>
-        <div
-          role="group"
-          aria-label="Diagram view"
-          className="ml-auto flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400"
-        >
-          <span className="hidden sm:inline">View</span>
-          <div className="flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 dark:border-slate-700 dark:bg-slate-800">
-            {(["stack", "free"] as const).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                aria-pressed={view === mode}
-                title={mode === "stack" ? "Layers, grouped by kind of tool" : "Drag tools anywhere"}
-                onClick={() => setView(mode)}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                  view === mode
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700"
-                }`}
-              >
-                {mode === "stack" ? "Stack" : "Free"}
-              </button>
-            ))}
-          </div>
-        </div>
       </header>
 
       <main className="flex min-h-0 flex-1 flex-col lg:flex-row">
@@ -366,15 +341,29 @@ function Workspace() {
             </ReactFlow>
           )}
 
-          <div className="absolute top-[15px] right-9 z-10 flex gap-1.5">
+          <div className="absolute top-[15px] right-9 left-9 z-10 flex flex-wrap justify-end gap-1.5 @max-[440px]:gap-1">
+            <ToolbarButton
+              onClick={() => setView((v) => (v === "stack" ? "free" : "stack"))}
+              title={
+                view === "stack"
+                  ? "Show a free-flowing diagram you can rearrange"
+                  : "Group tools into layers by kind"
+              }
+              disabled={nodes.length === 0}
+            >
+              <span className="@max-[440px]:hidden">{view === "stack" ? "Ungroup apps" : "Group apps"}</span>
+              <span className="hidden @max-[440px]:inline">{view === "stack" ? "Ungroup" : "Group"}</span>
+            </ToolbarButton>
             {view === "stack" ? (
               <ToolbarButton
                 aria-pressed={showAllConnections}
                 onClick={() => setShowAllConnections((v) => !v)}
                 disabled={visibleEdges.length === 0}
+                title="Show every connection with its label, or only the ones for the tool you point at"
                 className={showAllConnections ? "!border-indigo-500 !bg-indigo-50 !text-indigo-700" : undefined}
               >
-                All connections
+                <span className="@max-[440px]:hidden">All connections</span>
+                <span className="hidden @max-[440px]:inline">Connections</span>
               </ToolbarButton>
             ) : (
               <ToolbarButton onClick={runLayout} disabled={nodes.length < 2}>
@@ -468,13 +457,14 @@ function Workspace() {
 
 function ToolbarButton({
   children,
+  className,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       type="button"
       {...props}
-      className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+      className={`rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium whitespace-nowrap text-slate-700 @max-[440px]:px-2 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 ${className ?? ""}`}
     >
       {children}
     </button>

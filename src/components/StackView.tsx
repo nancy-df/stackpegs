@@ -77,7 +77,7 @@ export function StackView(props: Props) {
     <div
       ref={scrollRef}
       onClick={props.onClearSelection}
-      className="thin-scroll absolute inset-0 overflow-auto bg-slate-50 p-4 pt-16 pb-44 dark:bg-slate-950"
+      className="thin-scroll absolute inset-0 overflow-auto bg-slate-50 p-4 pt-16 pb-44 @max-[440px]:pt-24 dark:bg-slate-950"
     >
       <div className="relative mx-auto" style={{ width: layout.width, height: layout.height }}>
         {layout.strips.map((strip) => (
