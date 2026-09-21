@@ -155,7 +155,7 @@ function Workspace() {
         edges: visibleEdges,
         summary: integrations.result?.summary ?? null,
       });
-      downloadHtml(html, `appsync-integration-map-${new Date().toISOString().slice(0, 10)}.html`);
+      downloadHtml(html, `stackpegs-integration-map-${new Date().toISOString().slice(0, 10)}.html`);
     } catch {
       setNotice("Could not create the HTML file. Please try again.");
     } finally {
@@ -174,8 +174,8 @@ function Workspace() {
   return (
     <div className="flex min-h-dvh flex-col lg:h-dvh">
       <header className="flex h-12 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-900">
-        <div className="grid size-7 place-items-center rounded-lg bg-indigo-600 text-sm font-bold text-white">A</div>
-        <h1 className="text-sm font-semibold">AppSync</h1>
+        <div className="grid size-7 place-items-center rounded-lg bg-indigo-600 text-sm font-bold text-white">S</div>
+        <h1 className="text-sm font-semibold">StackPegs</h1>
         <p className="hidden text-xs text-slate-500 sm:block dark:text-slate-400">
           See how your tools connect and where the data flows.
         </p>

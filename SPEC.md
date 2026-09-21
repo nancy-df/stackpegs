@@ -1,10 +1,10 @@
-# AppSync — Product & Technical Spec (v1)
+# StackPegs — Product & Technical Spec (v1)
 
 Status: v1 implemented. This document describes what the app does and the decisions behind it.
 
 ## 1. Overview
 
-AppSync is a web app that helps someone visually explore how popular SaaS tools fit together. A visitor picks a tool *category*, sees the logos of popular tools in that category, and drags one or more onto a central canvas. As soon as two or more tools are on the canvas, AppSync asks Claude how those tools integrate and renders the answer as a diagram: connection lines annotated with the integration method and what data flows, and in which direction.
+StackPegs is a web app that helps someone visually explore how popular SaaS tools fit together. A visitor picks a tool *category*, sees the logos of popular tools in that category, and drags one or more onto a central canvas. As soon as two or more tools are on the canvas, StackPegs asks Claude how those tools integrate and renders the answer as a diagram: connection lines annotated with the integration method and what data flows, and in which direction.
 
 ## 2. Goals / Non-goals
 
@@ -59,7 +59,7 @@ Logos are used only to identify each vendor's product. Confirm this fits each ve
 5. The result appears as labelled arrows between tools and the tools are auto-arranged. The right panel shows an end-to-end summary and a clickable list of connections.
 6. Clicking a node shows the tool and its connections. Clicking an edge or its label shows integration type, direction, what flows, and typical use.
 7. Remove a tool with its hover "x" or the Delete key, "Clear" the canvas, re-run the AI with "Regenerate", or re-arrange with "Auto-layout".
-8. **Download HTML** saves the current canvas as a single self-contained `.html` file (`appsync-integration-map-YYYY-MM-DD.html`): the diagram as inline SVG (same positions, curved routing, arrows and labels as on screen), the summary, and the list of connections. No scripts and no external requests: bundled logos are inline paths and favicon-based logos are embedded as data URIs, fetched through `GET /api/favicon?tool=<id>` (same origin, catalog ids only). All AI-generated text is HTML-escaped.
+8. **Download HTML** saves the current canvas as a single self-contained `.html` file (`stackpegs-integration-map-YYYY-MM-DD.html`): the diagram as inline SVG (same positions, curved routing, arrows and labels as on screen), the summary, and the list of connections. No scripts and no external requests: bundled logos are inline paths and favicon-based logos are embedded as data URIs, fetched through `GET /api/favicon?tool=<id>` (same origin, catalog ids only). All AI-generated text is HTML-escaped.
 
 ## 5. Canvas & Diagram Behavior
 
@@ -123,7 +123,7 @@ scripts/   gen-icons.mjs
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│ AppSync                                                          │
+│ StackPegs                                                        │
 ├─────────────────┬────────────────────────────────┬───────────────┤
 │ 1. Category     │        [Auto-layout][Regen][Clear]  3. Integration│
 │  Data & Analytics│                                │     map       │

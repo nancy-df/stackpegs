@@ -5,7 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 // Serves POST /api/generate-integrations in dev using the same handler the Vercel function uses.
 function apiDevPlugin(): Plugin {
   return {
-    name: "appsync-api-dev",
+    name: "stackpegs-api-dev",
     configureServer(server) {
       const env = loadEnv(server.config.mode, process.cwd(), "");
       for (const key of ["ANTHROPIC_API_KEY", "ANTHROPIC_MODEL"]) {

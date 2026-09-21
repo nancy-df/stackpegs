@@ -1,6 +1,6 @@
 import type { IntegrationResult } from "../../shared/schema";
 
-const PREFIX = "appsync:integrations:v1:";
+const PREFIX = "stackpegs:integrations:v1:";
 
 export function readCache(key: string): IntegrationResult | null {
   try {

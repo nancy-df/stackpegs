@@ -188,14 +188,14 @@ export async function buildHtml(input: ExportInput): Promise<string> {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AppSync integration map</title>
+<title>StackPegs integration map</title>
 <style>${STYLES}</style>
 </head>
 <body>
 <main>
 <header>
 <h1>Integration map</h1>
-<p class="meta">${toolCount} tool${toolCount === 1 ? "" : "s"} &middot; generated with AppSync on ${esc(date)}</p>
+<p class="meta">${toolCount} tool${toolCount === 1 ? "" : "s"} &middot; generated with StackPegs on ${esc(date)}</p>
 </header>
 <div class="diagram">${svg}</div>
 ${summary}

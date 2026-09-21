@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { CATEGORIES, CATEGORIES_BY_ID, GROUPS, TOOLS, type Tool } from "../../shared/catalog";
 import { ToolLogo } from "./ToolLogo";
 
-export const DRAG_MIME = "application/x-appsync-tool";
+export const DRAG_MIME = "application/x-stackpegs-tool";
 
 type Props = {
   categoryId: string;
