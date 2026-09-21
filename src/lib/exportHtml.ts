@@ -93,21 +93,21 @@ async function buildStackSvg(input: Pick<ExportInput, "edges"> & { stack: NonNul
   const colors = [...new Set(routes.map((r) => TYPE_META[r.edge.integrationType].color))];
 
   const stripMarkup = layout.strips
-    .map((strip) => {
-      const c = strip.layer.color;
-      const dash = strip.layer.band ? ` stroke-dasharray="6 4"` : "";
+    .map((strip, index) => {
+      // Plain grey and white bands, alternating, with neutral borders.
+      const grey = index % 2 === 0;
       return (
-        `<rect x="${strip.x}" y="${strip.y}" width="${strip.w}" height="${strip.h}" rx="16" fill="${c}" fill-opacity="0.07" stroke="${c}" stroke-opacity="0.35"${dash}/>` +
-        `<text x="${strip.x + 14}" y="${strip.y + 20}" font-size="13" font-weight="700" fill="${c}">${esc(strip.layer.title)}` +
+        `<rect x="${strip.x}" y="${strip.y}" width="${strip.w}" height="${strip.h}" rx="12" fill="${grey ? "#f1f5f9" : "#ffffff"}" stroke="#e2e8f0"/>` +
+        `<text x="${strip.x + 12}" y="${strip.y + 16}" font-size="12" font-weight="700" fill="#334155">${esc(strip.layer.title)}` +
         `<tspan dx="8" font-size="11" font-weight="400" fill="#64748b">${esc(strip.layer.subtitle)}</tspan></text>` +
         strip.boxes
           .map((box) => {
             const category = CATEGORIES_BY_ID[box.categoryId];
-            const bc = category?.color ?? "#94a3b8";
+            const dot = category?.color ?? "#94a3b8";
             return (
-              `<rect x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" rx="12" fill="#fff" fill-opacity="0.85" stroke="${bc}" stroke-opacity="0.4"/>` +
-              `<circle cx="${box.x + 14}" cy="${box.y + 15}" r="3" fill="${bc}"/>` +
-              `<text x="${box.x + 22}" y="${box.y + 18}" font-size="10" font-weight="600" letter-spacing="0.5" fill="#64748b">${esc((category?.label ?? "Other").toUpperCase())}</text>`
+              `<rect x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" rx="8" fill="${grey ? "#ffffff" : "#f8fafc"}" stroke="#e2e8f0"/>` +
+              `<circle cx="${box.x + 13}" cy="${box.y + 13}" r="3" fill="${dot}"/>` +
+              `<text x="${box.x + 21}" y="${box.y + 16}" font-size="10" font-weight="600" letter-spacing="0.5" fill="#64748b">${esc((category?.label ?? "Other").toUpperCase())}</text>`
             );
           })
           .join("")

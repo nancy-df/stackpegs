@@ -90,7 +90,7 @@ Tools are grouped like a tech-stack diagram: horizontal **layer strips** stacked
 | Layer | Default categories |
 |---|---|
 | Sources | CRM, Marketing & Email, Analytics, Customer Support, Accounting & Finance, Time Management |
-| Integration (drawn as a dashed band) | ETL / Pipelines, Automation / iPaaS |
+| Integration | ETL / Pipelines, Automation / iPaaS |
 | Data Platform | Data Warehouse |
 | Analytics & BI | BI Tools |
 | AI | AI Tools |
@@ -98,7 +98,8 @@ Tools are grouped like a tech-stack diagram: horizontal **layer strips** stacked
 | Other | Tools added as "Other" |
 
 - **Layers appear only when they contain a tool.** Category boxes inside a strip are ordered as in the category list, centered, and wrap onto new rows when the canvas is narrow. Tiles keep the order they were added.
-- **Tile size.** Tiles are 88 by 76 px with a 28 px logo and the name (11 px, up to two lines) underneath. In the Free view a node has a 32 px logo. The HTML download uses the same sizes. The tool tray on the left keeps its larger logos.
+- **Plain banding, tight spacing.** Strips alternate between light grey and white with neutral borders and plain dark titles (no per-layer colors). Category boxes are white on the grey strips and pale grey on the white ones. The colored parts are only the small category dot in each box header and the tile borders, which identify the category, and the connections. Padding and gaps are kept small (a strip is 138 px tall with one row of tiles, with 12 px between strips), so a 12-tool map is about 890 px tall at a 1000 px canvas width and three strips are visible at once without scrolling.
+- **Tile size.** Tiles are 88 by 74 px with a 28 px logo and the name (11 px, up to two lines) underneath. In the Free view a node has a 32 px logo. The HTML download uses the same sizes. The tool tray on the left keeps its larger logos.
 - **Moving a tool.** Select a tool and use the **Layer** dropdown in the right panel (Jira, for example, can be a source or an action target). The choice lasts for the session. Custom tools and placeholders use the layer of the category they were added under.
 - **All connections are shown by default:** every connection is drawn in its type color with an arrowhead and a label. The **All connections** toolbar button (highlighted while on) can be switched off for a quieter view, where every connection becomes a faint gray line with no arrowhead or label. In either mode, hovering or focusing a tool, or selecting a tool or connection, lights up that tool's connections in color with arrowheads and labels and dims everything else. Clicking a line or label selects it and opens its detail.
 - **Direction is preserved.** Lines are drawn from the upper strip to the lower one, so a connection whose data flows upward gets its arrowhead at the upper end. Two-way connections have both.

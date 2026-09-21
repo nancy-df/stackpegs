@@ -80,24 +80,18 @@ export function StackView(props: Props) {
       className="thin-scroll absolute inset-0 overflow-auto bg-slate-50 p-4 pt-16 pb-44 @max-[440px]:pt-24 dark:bg-slate-950"
     >
       <div className="relative mx-auto" style={{ width: layout.width, height: layout.height }}>
-        {layout.strips.map((strip) => (
+        {layout.strips.map((strip, index) => {
+          const grey = index % 2 === 0;
+          return (
           <Fragment key={strip.layer.id}>
             <div
-              className="absolute rounded-2xl border"
-              style={{
-                left: strip.x,
-                top: strip.y,
-                width: strip.w,
-                height: strip.h,
-                background: `${strip.layer.color}12`,
-                borderColor: `${strip.layer.color}55`,
-                borderStyle: strip.layer.band ? "dashed" : "solid",
-              }}
+              className={`absolute rounded-xl border border-slate-200 dark:border-slate-700 ${
+                grey ? "bg-slate-100 dark:bg-slate-800/70" : "bg-white dark:bg-slate-900"
+              }`}
+              style={{ left: strip.x, top: strip.y, width: strip.w, height: strip.h }}
             >
-              <div className="flex items-baseline gap-2 px-3 pt-2">
-                <span className="text-[13px] font-bold" style={{ color: strip.layer.color }}>
-                  {strip.layer.title}
-                </span>
+              <div className="flex items-baseline gap-2 px-3 pt-1">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{strip.layer.title}</span>
                 <span className="text-[11px] text-slate-500 dark:text-slate-400">{strip.layer.subtitle}</span>
               </div>
             </div>
@@ -106,10 +100,12 @@ export function StackView(props: Props) {
               return (
                 <div
                   key={`${strip.layer.id}:${box.categoryId}`}
-                  className="absolute rounded-xl border bg-white/80 dark:bg-slate-900/70"
-                  style={{ left: box.x, top: box.y, width: box.w, height: box.h, borderColor: `${category?.color ?? QUIET}66` }}
+                  className={`absolute rounded-lg border border-slate-200 dark:border-slate-700 ${
+                    grey ? "bg-white dark:bg-slate-900/80" : "bg-slate-50 dark:bg-slate-800/60"
+                  }`}
+                  style={{ left: box.x, top: box.y, width: box.w, height: box.h }}
                 >
-                  <div className="flex items-center gap-1.5 px-2.5 pt-2 text-[10px] font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                  <div className="flex items-center gap-1.5 px-2.5 pt-1.5 text-[10px] font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
                     <span className="size-1.5 rounded-full" style={{ background: category?.color ?? QUIET }} />
                     {category?.label ?? "Other"}
                   </div>
@@ -117,7 +113,8 @@ export function StackView(props: Props) {
               );
             })}
           </Fragment>
-        ))}
+          );
+        })}
 
         <svg className="pointer-events-none absolute inset-0" width={layout.width} height={layout.height} aria-hidden="true">
           <defs>

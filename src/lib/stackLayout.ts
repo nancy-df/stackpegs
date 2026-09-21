@@ -3,18 +3,18 @@ import { LAYERS, type Layer } from "../../shared/layers";
 import type { IntegrationEdge } from "../../shared/schema";
 
 export const TILE_W = 88;
-export const TILE_H = 76;
+export const TILE_H = 74;
 // Logo size inside a Stack tile, in px. The on-screen tile and the HTML download both use it.
 export const TILE_LOGO = 28;
 const TILE_GAP = 8;
-const BOX_PAD = 8;
-const BOX_HEADER = 22;
-const BOX_GAP = 10;
+const BOX_PAD = 6;
+const BOX_HEADER = 18;
+const BOX_GAP = 8;
 // Wide enough for the longest category title on one line.
 const MIN_BOX_W = 152;
-const STRIP_PAD = 10;
-const STRIP_HEADER = 30;
-export const STRIP_GAP = 30;
+const STRIP_PAD = 6;
+const STRIP_HEADER = 22;
+export const STRIP_GAP = 12;
 
 export type StackTile = { toolId: string; x: number; y: number; w: number; h: number };
 export type StackBox = { categoryId: string; x: number; y: number; w: number; h: number; tiles: StackTile[] };

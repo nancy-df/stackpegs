@@ -6,10 +6,6 @@ export type Layer = {
   subtitle: string;
   // Categories placed here by default.
   categoryIds: string[];
-  // Tint used for the strip, as a hex color.
-  color: string;
-  // Shared plumbing (ETL, automation) is drawn as a full-width band.
-  band?: boolean;
 };
 
 // Top to bottom, in the order data usually flows.
@@ -19,50 +15,42 @@ export const LAYERS: Layer[] = [
     title: "Sources",
     subtitle: "Where your data starts",
     categoryIds: ["crm", "marketing", "analytics", "support", "finance", "time"],
-    color: "#3b82f6",
   },
   {
     id: "integration",
     title: "Integration",
     subtitle: "Collect, connect, orchestrate",
     categoryIds: ["etl", "automation"],
-    color: "#f59e0b",
-    band: true,
   },
   {
     id: "platform",
     title: "Data Platform",
     subtitle: "Store, transform, model",
     categoryIds: ["warehouse"],
-    color: "#0ea5e9",
   },
   {
     id: "analytics",
     title: "Analytics & BI",
     subtitle: "Dashboards and insights",
     categoryIds: ["bi"],
-    color: "#f97316",
   },
   {
     id: "ai",
     title: "AI",
     subtitle: "Assistants and agents",
     categoryIds: ["ai-tools"],
-    color: "#d946ef",
   },
   {
     id: "action",
     title: "Collaboration & Action",
     subtitle: "Where people act on it",
     categoryIds: ["comm", "pm", "task"],
-    color: "#22c55e",
   },
   {
     id: "other",
     title: "Other",
     subtitle: "Tools you added",
     categoryIds: ["other"],
-    color: "#64748b",
   },
 ];
 
