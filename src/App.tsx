@@ -14,6 +14,7 @@ import {
 import { CATEGORIES, CATEGORIES_BY_ID, MAX_CANVAS_TOOLS, TOOLS } from "../shared/catalog";
 import { CUSTOM_NAME_MAX, customToolId, normalizeCustomName, splitToolNames } from "../shared/custom";
 import { DetailPanel, edgeId } from "./components/DetailPanel";
+import { GuidanceBar } from "./components/GuidanceBar";
 import { IntegrationEdgeView, type IntegrationFlowEdge } from "./components/IntegrationEdgeView";
 import { Sidebar } from "./components/Sidebar";
 import { DRAG_MIME } from "./components/ToolTile";
@@ -287,9 +288,6 @@ function Workspace() {
               <ToolbarButton onClick={runLayout} disabled={nodes.length < 2}>
                 Auto-layout
               </ToolbarButton>
-              <ToolbarButton onClick={integrations.regenerate} disabled={nodes.length < 2 || busy}>
-                Regenerate
-              </ToolbarButton>
               <ToolbarButton onClick={downloadCanvas} disabled={nodes.length === 0 || exporting}>
                 {exporting ? "Preparing..." : "Download HTML"}
               </ToolbarButton>
@@ -307,11 +305,17 @@ function Workspace() {
               </Panel>
             )}
 
-            {notice && (
-              <Panel position="bottom-center">
-                <div role="status" className="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white shadow-lg">
-                  {notice}
-                </div>
+            {(notice || nodes.length >= 2) && (
+              <Panel position="bottom-center" className="flex w-[min(480px,calc(100%-104px))] flex-col gap-2">
+                {notice && (
+                  <div
+                    role="status"
+                    className="self-center rounded-lg bg-slate-900 px-3 py-2 text-xs text-white shadow-lg"
+                  >
+                    {notice}
+                  </div>
+                )}
+                {nodes.length >= 2 && <GuidanceBar busy={busy} onRegenerate={integrations.regenerate} />}
               </Panel>
             )}
           </ReactFlow>
@@ -341,7 +345,7 @@ function Workspace() {
           selectedEdgeId={selectedEdgeId}
           onSelectNode={selectNode}
           onSelectEdge={selectEdge}
-          onRetry={integrations.regenerate}
+          onRetry={() => integrations.regenerate()}
         />
       </main>
     </div>

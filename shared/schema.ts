@@ -33,6 +33,7 @@ export const CustomToolInputSchema = z.object({
 export const GenerateRequestSchema = z.object({
   toolIds: z.array(z.string().max(90)).min(2).max(MAX_CANVAS_TOOLS),
   customTools: z.array(CustomToolInputSchema).max(MAX_CANVAS_TOOLS).optional(),
+  guidance: z.string().max(1000).optional(),
 });
 
 export type IntegrationType = (typeof INTEGRATION_TYPES)[number];

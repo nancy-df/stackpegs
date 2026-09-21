@@ -1,6 +1,17 @@
 import { CATEGORIES, CATEGORIES_BY_ID, TOOLS_BY_ID, type Tool } from "./catalog.js";
 
 export const CUSTOM_NAME_MAX = 40;
+export const GUIDANCE_MAX = 300;
+
+// Cleans a visitor's free-text note for the next version of the map: no control characters, single spaces, capped length.
+export function normalizeGuidance(raw: string | undefined): string {
+  if (!raw) return "";
+  const printable = Array.from(raw, (ch) => {
+    const code = ch.charCodeAt(0);
+    return code < 32 || code === 127 ? " " : ch;
+  }).join("");
+  return printable.replace(/\s+/g, " ").trim().slice(0, GUIDANCE_MAX);
+}
 
 export type CustomToolInput = { id: string; name: string; categoryId: string };
 
