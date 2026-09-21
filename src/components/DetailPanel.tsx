@@ -177,7 +177,7 @@ export function DetailPanel(props: Props) {
   }
 
   return (
-    <aside className="flex min-h-0 flex-col border-t border-slate-200 bg-white lg:w-80 lg:shrink-0 lg:border-t-0 lg:border-l dark:border-slate-800 dark:bg-slate-900">
+    <aside className="flex min-h-0 flex-col border-t border-slate-200 bg-white lg:w-72 lg:shrink-0 lg:border-t-0 lg:border-l dark:border-slate-800 dark:bg-slate-900">
       <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-800">
         <h2 className="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
           {selectedEdge ? "Integration" : selectedTool ? "Tool" : "3. Integration map"}

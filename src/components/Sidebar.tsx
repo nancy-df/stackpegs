@@ -75,8 +75,8 @@ export function Sidebar({ categoryId, onSelectCategory, onAddTool, onCanvas }: P
   const tools = searching ? results : TOOLS.filter((t) => t.categoryId === category.id);
 
   return (
-    <aside className="flex min-h-0 flex-col border-b border-slate-200 bg-white lg:w-80 lg:shrink-0 lg:border-r lg:border-b-0 dark:border-slate-800 dark:bg-slate-900">
-      <div className="shrink-0 border-b border-slate-200 p-4 dark:border-slate-800">
+    <aside className="flex min-h-0 flex-col border-b border-slate-200 bg-white lg:w-[400px] lg:shrink-0 lg:border-r lg:border-b-0 dark:border-slate-800 dark:bg-slate-900">
+      <div className="shrink-0 border-b border-slate-200 p-3 dark:border-slate-800">
         <label className="relative block">
           <span className="sr-only">Search tools</span>
           <svg
@@ -116,66 +116,77 @@ export function Sidebar({ categoryId, onSelectCategory, onAddTool, onCanvas }: P
         </label>
       </div>
 
-      {!searching && (
-        <div className="thin-scroll max-h-[36vh] shrink-0 space-y-3 overflow-y-auto border-b border-slate-200 p-4 lg:max-h-[42%] dark:border-slate-800">
-          <h2 className="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-            1. Pick a category
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+        <nav
+          aria-label="Categories"
+          className="thin-scroll max-h-[36vh] shrink-0 space-y-2 overflow-y-auto border-b border-slate-200 p-2.5 lg:max-h-none lg:w-[184px] lg:border-r lg:border-b-0 dark:border-slate-800"
+        >
+          <h2 className="px-1 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+            1. Category
           </h2>
           {GROUPS.map((group) => (
             <div key={group.id}>
-              <div className="mb-1.5 text-[11px] font-medium text-slate-400">{group.label}</div>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="mb-1 px-1 text-[11px] font-medium text-slate-400">{group.label}</div>
+              <div className="flex flex-wrap gap-1.5 lg:flex-col lg:gap-0.5">
                 {CATEGORIES.filter((c) => c.groupId === group.id).map((c) => {
-                  const active = c.id === category.id;
+                  const active = !searching && c.id === category.id;
                   return (
                     <button
                       key={c.id}
                       type="button"
                       aria-pressed={active}
-                      onClick={() => onSelectCategory(c.id)}
-                      className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
+                      onClick={() => {
+                        setQuery("");
+                        onSelectCategory(c.id);
+                      }}
+                      className={`flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors lg:w-full lg:rounded-md lg:border-transparent lg:px-2 lg:py-1.5 lg:text-left ${
                         active
                           ? "text-white"
-                          : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                          : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 lg:bg-transparent dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 lg:dark:bg-transparent"
                       }`}
                       style={active ? { background: c.color, borderColor: c.color } : undefined}
                     >
-                      {c.label}
+                      <span
+                        className="size-2 shrink-0 rounded-full"
+                        style={{ background: active ? "#fff" : c.color }}
+                        aria-hidden="true"
+                      />
+                      <span className="truncate">{c.label}</span>
                     </button>
                   );
                 })}
               </div>
             </div>
           ))}
-        </div>
-      )}
+        </nav>
 
-      <div className="thin-scroll min-h-0 flex-1 overflow-y-auto p-4">
-        <h2 className="mb-1 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-          {searching ? "Search results" : "2. Drag onto the canvas"}
-        </h2>
-        <p className="mb-3 text-xs text-slate-500 dark:text-slate-400" role="status">
-          {searching
-            ? `${results.length} ${results.length === 1 ? "tool matches" : "tools match"} "${query.trim()}". Drag or click to add.`
-            : `${category.label}: ${tools.length} popular tools. Click a logo to add it without dragging.`}
-        </p>
-        {searching && results.length === 0 ? (
-          <p className="py-6 text-center text-sm text-slate-500">
-            No tools found. Try a different name or category.
+        <div className="thin-scroll min-h-0 flex-1 overflow-y-auto p-3">
+          <h2 className="mb-1 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+            {searching ? "Search results" : "2. Drag onto the canvas"}
+          </h2>
+          <p className="mb-3 text-xs text-slate-500 dark:text-slate-400" role="status">
+            {searching
+              ? `${results.length} ${results.length === 1 ? "tool matches" : "tools match"} "${query.trim()}".`
+              : `${category.label}: ${tools.length} tools. Drag to the canvas, or click to add.`}
           </p>
-        ) : (
-          <div className="grid grid-cols-3 gap-2">
-            {tools.map((tool) => (
-              <ToolTile
-                key={tool.id}
-                tool={tool}
-                added={onCanvas.has(tool.id)}
-                showCategory={searching}
-                onAdd={() => onAddTool(tool.id)}
-              />
-            ))}
-          </div>
-        )}
+          {searching && results.length === 0 ? (
+            <p className="py-6 text-center text-sm text-slate-500">
+              No tools found. Try a different name or category.
+            </p>
+          ) : (
+            <div className="grid grid-cols-3 gap-2 lg:grid-cols-2">
+              {tools.map((tool) => (
+                <ToolTile
+                  key={tool.id}
+                  tool={tool}
+                  added={onCanvas.has(tool.id)}
+                  showCategory={searching}
+                  onAdd={() => onAddTool(tool.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </aside>
   );

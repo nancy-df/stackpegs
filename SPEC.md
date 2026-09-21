@@ -122,21 +122,32 @@ scripts/   gen-icons.mjs
 
 ## 9. UI Layout
 
+Four columns on desktop (1024 px and up), with the canvas as the widest:
+
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│ StackPegs                                                        │
-├─────────────────┬────────────────────────────────┬───────────────┤
-│ 1. Category     │        [Auto-layout][Regen][Clear]  3. Integration│
-│  Data & Analytics│                                │     map       │
-│  (BI)(Warehouse)│           CANVAS               │  Summary      │
-│  (ETL)(Analytics)│   node ──label──> node        │  Connections  │
-│  Sales & Mktg …  │                                │  (click for   │
-│ 2. Drag onto the │                                │   detail)     │
-│    canvas        │                                │  disclaimer   │
-│  [logo][logo]…   │                                │               │
-└─────────────────┴────────────────────────────────┴───────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│ StackPegs                                                              │
+├──────────────────────────────┬─────────────────────┬───────────────────┤
+│ [ Search all tools...      ] │                     │                   │
+├─────────────┬────────────────┤   [Auto-layout][Regen][Download][Clear] │
+│ 1. Category │ 2. Drag onto   │                     │ 3. Integration    │
+│  Data & Anal│    the canvas  │       CANVAS        │    map            │
+│  * BI Tools │  [logo] [logo] │   node --label--> n │  Summary          │
+│  * Warehouse│  [logo] [logo] │                     │  Connections      │
+│  ...all 14  │  [logo] [logo] │                     │  (click for       │
+│  categories │                │                     │   detail)         │
+│  in groups  │                │                     │  disclaimer       │
+└─────────────┴────────────────┴─────────────────────┴───────────────────┘
+   184 px         215 px            flexible              288 px
 ```
-Below 1024 px the three panels stack vertically.
+
+- **Search** spans the top of the two left columns.
+- **Column 1, categories**: a vertical list grouped by area, with a color dot per category. All 14 fit without scrolling at 760 px height (it scrolls on shorter screens). The active category is filled with its color. While a search is active no category is highlighted, and clicking a category clears the search and selects it.
+- **Column 2, tools**: the tray, two tiles per row. Search results replace it and show each tool's category.
+- **Column 3, canvas**: takes all remaining width.
+- **Column 4, integration map**: summary, connections list, and the selected node or edge detail.
+
+Below 1024 px the panels stack vertically: search, category pills (wrapping, with the same color dots), a three-column tool grid, the canvas, then the integration map.
 
 ## 10. Running It
 
