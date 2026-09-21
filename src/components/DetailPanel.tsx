@@ -1,7 +1,8 @@
-import { CATEGORIES_BY_ID, TOOLS_BY_ID } from "../../shared/catalog";
+import { CATEGORIES_BY_ID } from "../../shared/catalog";
 import type { IntegrationEdge } from "../../shared/schema";
 import type { IntegrationStatus } from "../hooks/useIntegrations";
 import { TYPE_META } from "../lib/integrationTypes";
+import { getTool } from "../lib/tools";
 import { ToolLogo } from "./ToolLogo";
 
 export const edgeId = (e: Pick<IntegrationEdge, "source" | "target">) => `${e.source}|${e.target}`;
@@ -20,7 +21,7 @@ type Props = {
 };
 
 function ToolChip({ toolId }: { toolId: string }) {
-  const tool = TOOLS_BY_ID[toolId];
+  const tool = getTool(toolId);
   if (!tool) return null;
   return (
     <span className="inline-flex items-center gap-1.5 rounded-lg bg-white px-1.5 py-1 text-xs font-medium text-slate-800 ring-1 ring-slate-200">
@@ -68,7 +69,7 @@ function EdgeRow({ edge, onClick }: { edge: IntegrationEdge; onClick: () => void
 export function DetailPanel(props: Props) {
   const { toolIds, edges, summary, status, error, selectedNodeId, selectedEdgeId } = props;
   const selectedEdge = selectedEdgeId ? edges.find((e) => edgeId(e) === selectedEdgeId) : undefined;
-  const selectedTool = selectedNodeId ? TOOLS_BY_ID[selectedNodeId] : undefined;
+  const selectedTool = selectedNodeId ? getTool(selectedNodeId) : undefined;
 
   let body: React.ReactNode;
 
@@ -101,18 +102,20 @@ export function DetailPanel(props: Props) {
           </div>
           <div>
             <div className="font-semibold">{selectedTool.name}</div>
-            <div className="text-xs text-slate-500">{CATEGORIES_BY_ID[selectedTool.categoryId]?.label}</div>
+            <div className="text-xs text-slate-500">{selectedTool.placeholder ? "Placeholder" : CATEGORIES_BY_ID[selectedTool.categoryId]?.label}</div>
           </div>
         </div>
         <p className="text-sm text-slate-600 dark:text-slate-300">{selectedTool.description}</p>
-        <a
-          href={selectedTool.website}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="inline-block text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400"
-        >
-          Visit website
-        </a>
+        {selectedTool.website && (
+          <a
+            href={selectedTool.website}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-block text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+          >
+            Visit website
+          </a>
+        )}
         <div>
           <h3 className="mb-1.5 text-xs font-semibold text-slate-500 uppercase">Connections on this canvas</h3>
           {related.length === 0 ? (

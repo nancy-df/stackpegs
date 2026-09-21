@@ -17,6 +17,8 @@ export type Tool = {
   iconSlug: string;
   website: string;
   description: string;
+  custom?: boolean;
+  placeholder?: boolean;
 };
 
 export const GROUPS: CategoryGroup[] = [
@@ -186,8 +188,10 @@ export const TOOLS_BY_ID: Record<string, Tool> = Object.fromEntries(
   TOOLS.map((tool) => [tool.id, tool]),
 );
 
+export const OTHER_CATEGORY: Category = { id: "other", label: "Other", groupId: "other", color: "#64748b" };
+
 export const CATEGORIES_BY_ID: Record<string, Category> = Object.fromEntries(
-  CATEGORIES.map((c) => [c.id, c]),
+  [...CATEGORIES, OTHER_CATEGORY].map((c) => [c.id, c]),
 );
 
 export const MAX_CANVAS_TOOLS = 12;

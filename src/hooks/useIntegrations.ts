@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { IntegrationResult } from "../../shared/schema";
 import { readCache, writeCache } from "../lib/cache";
+import { customToolInputs } from "../lib/tools";
 
 export type IntegrationStatus = "idle" | "loading" | "ready" | "error";
 
@@ -55,7 +56,7 @@ export function useIntegrations(toolIds: string[]): IntegrationState {
         const res = await fetch("/api/generate-integrations", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ toolIds: ids }),
+          body: JSON.stringify({ toolIds: ids, customTools: customToolInputs(ids) }),
           signal: controller.signal,
         });
         const data = await res.json().catch(() => null);

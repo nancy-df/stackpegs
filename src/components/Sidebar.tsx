@@ -1,15 +1,18 @@
 import { useMemo, useState } from "react";
 import { CATEGORIES, CATEGORIES_BY_ID, GROUPS, TOOLS, type Tool } from "../../shared/catalog";
-import { ToolLogo } from "./ToolLogo";
-
-export const DRAG_MIME = "application/x-stackpegs-tool";
+import { CUSTOM_NAME_MAX } from "../../shared/custom";
+import { OtherPanel } from "./OtherPanel";
+import { ToolTile } from "./ToolTile";
 
 type Props = {
   categoryId: string;
   onSelectCategory: (id: string) => void;
   onAddTool: (toolId: string) => void;
+  onAddCustom: (name: string, categoryId: string) => string | null;
   onCanvas: Set<string>;
 };
+
+const OTHER_ID = "other";
 
 function searchTools(query: string): Tool[] {
   const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
@@ -25,54 +28,20 @@ function searchTools(query: string): Tool[] {
   return scored.sort((a, b) => a.score - b.score).map((s) => s.tool);
 }
 
-function ToolTile({
-  tool,
-  added,
-  showCategory,
-  onAdd,
-}: {
-  tool: Tool;
-  added: boolean;
-  showCategory: boolean;
-  onAdd: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      draggable
-      title={tool.description}
-      onDragStart={(e) => {
-        e.dataTransfer.setData(DRAG_MIME, tool.id);
-        e.dataTransfer.effectAllowed = "copy";
-      }}
-      onClick={onAdd}
-      className="group relative flex cursor-grab flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-2 text-center transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md active:cursor-grabbing dark:border-slate-700"
-    >
-      <ToolLogo tool={tool} className="size-9" />
-      <span className="line-clamp-2 text-[11px] leading-tight font-medium text-slate-700">{tool.name}</span>
-      {showCategory && (
-        <span className="line-clamp-1 text-[10px] leading-tight text-slate-400">
-          {CATEGORIES_BY_ID[tool.categoryId]?.label}
-        </span>
-      )}
-      {added && (
-        <span
-          className="absolute top-1 right-1 grid size-4 place-items-center rounded-full bg-emerald-500 text-[10px] text-white"
-          aria-label="On canvas"
-        >
-          ✓
-        </span>
-      )}
-    </button>
-  );
-}
-
-export function Sidebar({ categoryId, onSelectCategory, onAddTool, onCanvas }: Props) {
+export function Sidebar({ categoryId, onSelectCategory, onAddTool, onAddCustom, onCanvas }: Props) {
   const [query, setQuery] = useState("");
+  const [prefill, setPrefill] = useState({ name: "", nonce: 0 });
+  const isOther = categoryId === OTHER_ID;
   const category = CATEGORIES.find((c) => c.id === categoryId) ?? CATEGORIES[0]!;
   const searching = query.trim().length > 0;
   const results = useMemo(() => searchTools(query), [query]);
-  const tools = searching ? results : TOOLS.filter((t) => t.categoryId === category.id);
+  const tools = searching ? results : isOther ? [] : TOOLS.filter((t) => t.categoryId === category.id);
+
+  const addFromSearch = () => {
+    setPrefill((p) => ({ name: query.trim().slice(0, CUSTOM_NAME_MAX), nonce: p.nonce + 1 }));
+    setQuery("");
+    onSelectCategory(OTHER_ID);
+  };
 
   return (
     <aside className="flex min-h-0 flex-col border-b border-slate-200 bg-white lg:w-[400px] lg:shrink-0 lg:border-r lg:border-b-0 dark:border-slate-800 dark:bg-slate-900">
@@ -129,7 +98,7 @@ export function Sidebar({ categoryId, onSelectCategory, onAddTool, onCanvas }: P
               <div className="mb-1 px-1 text-[11px] font-medium text-slate-400">{group.label}</div>
               <div className="flex flex-wrap gap-1.5 lg:flex-col lg:gap-0.5">
                 {CATEGORIES.filter((c) => c.groupId === group.id).map((c) => {
-                  const active = !searching && c.id === category.id;
+                  const active = !searching && !isOther && c.id === category.id;
                   return (
                     <button
                       key={c.id}
@@ -139,7 +108,7 @@ export function Sidebar({ categoryId, onSelectCategory, onAddTool, onCanvas }: P
                         setQuery("");
                         onSelectCategory(c.id);
                       }}
-                      className={`flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors lg:w-full lg:rounded-md lg:border-transparent lg:px-2 lg:py-1.5 lg:text-left ${
+                      className={`flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors lg:w-full lg:rounded-md lg:border-transparent lg:px-2 lg:py-1 lg:text-left ${
                         active
                           ? "text-white"
                           : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 lg:bg-transparent dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 lg:dark:bg-transparent"
@@ -158,33 +127,76 @@ export function Sidebar({ categoryId, onSelectCategory, onAddTool, onCanvas }: P
               </div>
             </div>
           ))}
+          <div>
+            <div className="mb-1 px-1 text-[11px] font-medium text-slate-400">Not listed?</div>
+            <button
+              type="button"
+              aria-pressed={!searching && isOther}
+              onClick={() => {
+                setQuery("");
+                onSelectCategory(OTHER_ID);
+              }}
+              className={`flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors lg:w-full lg:rounded-md lg:border-transparent lg:px-2 lg:py-1 lg:text-left ${
+                !searching && isOther
+                  ? "border-slate-700 bg-slate-700 text-white"
+                  : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 lg:bg-transparent dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 lg:dark:bg-transparent"
+              }`}
+            >
+              <span className="grid size-2 shrink-0 place-items-center text-[13px] leading-none" aria-hidden="true">
+                +
+              </span>
+              <span className="truncate">Other</span>
+            </button>
+          </div>
         </nav>
 
         <div className="thin-scroll min-h-0 flex-1 overflow-y-auto p-3">
-          <h2 className="mb-1 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-            {searching ? "Search results" : "2. Drag onto the canvas"}
-          </h2>
-          <p className="mb-3 text-xs text-slate-500 dark:text-slate-400" role="status">
-            {searching
-              ? `${results.length} ${results.length === 1 ? "tool matches" : "tools match"} "${query.trim()}".`
-              : `${category.label}: ${tools.length} tools. Drag to the canvas, or click to add.`}
-          </p>
-          {searching && results.length === 0 ? (
-            <p className="py-6 text-center text-sm text-slate-500">
-              No tools found. Try a different name or category.
-            </p>
+          {isOther && !searching ? (
+            <OtherPanel
+              key={prefill.nonce}
+              initialName={prefill.name}
+              onCanvas={onCanvas}
+              onAddCustom={onAddCustom}
+              onAddTool={onAddTool}
+            />
           ) : (
-            <div className="grid grid-cols-3 gap-2 lg:grid-cols-2">
-              {tools.map((tool) => (
-                <ToolTile
-                  key={tool.id}
-                  tool={tool}
-                  added={onCanvas.has(tool.id)}
-                  showCategory={searching}
-                  onAdd={() => onAddTool(tool.id)}
-                />
-              ))}
-            </div>
+            <>
+              <h2 className="mb-1 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                {searching ? "Search results" : "2. Drag onto the canvas"}
+              </h2>
+              <p className="mb-3 text-xs text-slate-500 dark:text-slate-400" role="status">
+                {searching
+                  ? `${results.length} ${results.length === 1 ? "tool matches" : "tools match"} "${query.trim()}".`
+                  : `${category.label}: ${tools.length} tools. Drag to the canvas, or click to add.`}
+              </p>
+              {tools.length > 0 && (
+                <div className="grid grid-cols-3 gap-2 lg:grid-cols-2">
+                  {tools.map((tool) => (
+                    <ToolTile
+                      key={tool.id}
+                      tool={tool}
+                      added={onCanvas.has(tool.id)}
+                      showCategory={searching}
+                      onAdd={() => onAddTool(tool.id)}
+                    />
+                  ))}
+                </div>
+              )}
+              {searching && (
+                <div className="mt-3 rounded-xl border border-dashed border-slate-300 p-3 text-center dark:border-slate-700">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {results.length === 0 ? "No tools found." : "Not the one you meant?"}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={addFromSearch}
+                    className="mt-1.5 text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+                  >
+                    Add "{query.trim().slice(0, CUSTOM_NAME_MAX)}" as your own tool
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

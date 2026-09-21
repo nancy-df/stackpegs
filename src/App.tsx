@@ -11,15 +11,18 @@ import {
   useStore,
   type XYPosition,
 } from "@xyflow/react";
-import { CATEGORIES, MAX_CANVAS_TOOLS, TOOLS_BY_ID } from "../shared/catalog";
+import { CATEGORIES, CATEGORIES_BY_ID, MAX_CANVAS_TOOLS, TOOLS } from "../shared/catalog";
+import { CUSTOM_NAME_MAX, customToolId, normalizeCustomName } from "../shared/custom";
 import { DetailPanel, edgeId } from "./components/DetailPanel";
 import { IntegrationEdgeView, type IntegrationFlowEdge } from "./components/IntegrationEdgeView";
-import { DRAG_MIME, Sidebar } from "./components/Sidebar";
+import { Sidebar } from "./components/Sidebar";
+import { DRAG_MIME } from "./components/ToolTile";
 import { ToolNode, type ToolFlowNode } from "./components/ToolNode";
 import { useIntegrations } from "./hooks/useIntegrations";
 import { buildHtml, downloadHtml } from "./lib/exportHtml";
 import { TYPE_META } from "./lib/integrationTypes";
 import { NODE_W, freeSpot, layoutNodes } from "./lib/layout";
+import { getTool, registerCustomTool } from "./lib/tools";
 
 const nodeTypes = { tool: ToolNode };
 const edgeTypes = { integration: IntegrationEdgeView };
@@ -102,9 +105,10 @@ function Workspace() {
 
   const addTool = useCallback(
     (toolId: string, dropPosition?: XYPosition) => {
-      if (!TOOLS_BY_ID[toolId]) return;
+      const tool = getTool(toolId);
+      if (!tool) return;
       if (onCanvas.has(toolId)) {
-        setNotice(`${TOOLS_BY_ID[toolId]!.name} is already on the canvas.`);
+        setNotice(`${tool.name} is already on the canvas.`);
         setNodes((nds) => nds.map((n) => ({ ...n, selected: n.id === toolId })));
         return;
       }
@@ -122,6 +126,30 @@ function Workspace() {
       setSelectedEdgeId(null);
     },
     [nodes, onCanvas, setNodes],
+  );
+
+  const addCustomTool = useCallback(
+    (rawName: string, categoryId: string): string | null => {
+      if (!rawName.trim()) return "Enter the tool's name.";
+      const name = normalizeCustomName(rawName);
+      if (!name) {
+        return `Enter a name up to ${CUSTOM_NAME_MAX} characters, using letters, numbers, spaces and . & + - ' / _ ( ) only.`;
+      }
+      if (!CATEGORIES_BY_ID[categoryId]) return "Choose what kind of tool it is.";
+
+      const lower = name.toLowerCase();
+      const slug = customToolId(name, categoryId).split(":").pop();
+      const listed = TOOLS.find((t) => t.name.toLowerCase() === lower || t.id === slug);
+      if (listed) {
+        addTool(listed.id);
+        setNotice(`${listed.name} is already in the catalog, so I used that one.`);
+        return null;
+      }
+
+      addTool(registerCustomTool(name, categoryId).id);
+      return null;
+    },
+    [addTool],
   );
 
   const onDragOver = useCallback((e: DragEvent) => {
@@ -186,6 +214,7 @@ function Workspace() {
           categoryId={categoryId}
           onSelectCategory={setCategoryId}
           onAddTool={(id) => addTool(id)}
+          onAddCustom={addCustomTool}
           onCanvas={onCanvas}
         />
 

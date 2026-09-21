@@ -1,5 +1,6 @@
 import { Handle, Position, useReactFlow, type Node, type NodeProps } from "@xyflow/react";
-import { CATEGORIES_BY_ID, TOOLS_BY_ID } from "../../shared/catalog";
+import { CATEGORIES_BY_ID } from "../../shared/catalog";
+import { getTool } from "../lib/tools";
 import { NODE_W } from "../lib/layout";
 import { ToolLogo } from "./ToolLogo";
 
@@ -7,7 +8,7 @@ export type ToolFlowNode = Node<{ toolId: string }, "tool">;
 
 export function ToolNode({ id, data, selected }: NodeProps<ToolFlowNode>) {
   const { deleteElements } = useReactFlow();
-  const tool = TOOLS_BY_ID[data.toolId];
+  const tool = getTool(data.toolId);
   if (!tool) return null;
   const category = CATEGORIES_BY_ID[tool.categoryId];
 
@@ -20,14 +21,14 @@ export function ToolNode({ id, data, selected }: NodeProps<ToolFlowNode>) {
         className={`grid size-[72px] place-items-center rounded-2xl border-2 bg-white shadow-sm transition-shadow ${
           selected ? "shadow-lg ring-4 ring-indigo-500/30" : "group-hover:shadow-md"
         }`}
-        style={{ borderColor: category?.color ?? "#94a3b8" }}
+        style={{ borderColor: category?.color ?? "#94a3b8", borderStyle: tool.placeholder ? "dashed" : "solid" }}
       >
         <ToolLogo tool={tool} className="size-10" />
       </div>
 
       <div className="text-center leading-tight">
         <div className="text-[13px] font-semibold text-slate-900 dark:text-slate-100">{tool.name}</div>
-        <div className="text-[11px] text-slate-500 dark:text-slate-400">{category?.label}</div>
+        <div className="text-[11px] text-slate-500 dark:text-slate-400">{tool.placeholder ? "Placeholder" : category?.label}</div>
       </div>
 
       <button

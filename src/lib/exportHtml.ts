@@ -1,10 +1,11 @@
-import { CATEGORIES_BY_ID, TOOLS_BY_ID, type Tool } from "../../shared/catalog";
+import { CATEGORIES_BY_ID, type Tool } from "../../shared/catalog";
 import type { IntegrationEdge } from "../../shared/schema";
 import { ICONS } from "../data/icons.generated";
 import { routeEdge, type Box, type Point } from "./edgeRoute";
 import { TYPE_META } from "./integrationTypes";
 import { NODE_H, NODE_W } from "./layout";
-import { faviconUrl } from "./logo";
+import { faviconUrl, hueFor, initials } from "./logo";
+import { getTool } from "./tools";
 
 export type ExportInput = {
   nodes: { id: string; position: Point }[];
@@ -36,6 +37,20 @@ async function toDataUri(url: string): Promise<string | null> {
 }
 
 async function logoSvg(tool: Tool, x: number, y: number): Promise<string> {
+  if (tool.placeholder) {
+    const color = CATEGORIES_BY_ID[tool.categoryId]?.color ?? "#64748b";
+    return (
+      `<svg x="${x}" y="${y}" width="${LOGO}" height="${LOGO}" viewBox="0 0 24 24" fill="none" stroke="${color}">` +
+      `<rect x="3.5" y="3.5" width="17" height="17" rx="4.5" stroke-width="2" stroke-dasharray="3.2 2.4"/>` +
+      `<path d="M12 8v8M8 12h8" stroke-width="2" stroke-linecap="round"/></svg>`
+    );
+  }
+  if (tool.custom) {
+    return (
+      `<rect x="${x}" y="${y}" width="${LOGO}" height="${LOGO}" rx="8" fill="hsl(${hueFor(tool.name)} 55% 45%)"/>` +
+      `<text x="${x + LOGO / 2}" y="${y + LOGO / 2}" text-anchor="middle" dominant-baseline="central" font-size="16" font-weight="700" fill="#fff">${esc(initials(tool.name))}</text>`
+    );
+  }
   const icon = ICONS[tool.iconSlug];
   if (icon) {
     return `<svg x="${x}" y="${y}" width="${LOGO}" height="${LOGO}" viewBox="0 0 24 24"><path d="${icon.path}" fill="#${icon.hex}"/></svg>`;
@@ -98,17 +113,17 @@ async function buildSvg({ nodes, edges }: Pick<ExportInput, "nodes" | "edges">) 
   const nodeMarkup = (
     await Promise.all(
       nodes.map(async (n) => {
-        const tool = TOOLS_BY_ID[n.id];
+        const tool = getTool(n.id);
         if (!tool) return "";
         const category = CATEGORIES_BY_ID[tool.categoryId];
         const tileX = (NODE_W - TILE) / 2;
         const logo = await logoSvg(tool, tileX + (TILE - LOGO) / 2, (TILE - LOGO) / 2);
         return (
           `<g transform="translate(${n.position.x} ${n.position.y})">` +
-          `<rect x="${tileX}" y="0" width="${TILE}" height="${TILE}" rx="16" fill="#fff" stroke="${category?.color ?? "#94a3b8"}" stroke-width="2"/>` +
+          `<rect x="${tileX}" y="0" width="${TILE}" height="${TILE}" rx="16" fill="#fff" stroke="${category?.color ?? "#94a3b8"}" stroke-width="2"${tool.placeholder ? ' stroke-dasharray="5 3"' : ""}/>` +
           logo +
           `<text x="${NODE_W / 2}" y="${TILE + 18}" text-anchor="middle" font-size="13" font-weight="600" fill="#0f172a">${esc(tool.name)}</text>` +
-          `<text x="${NODE_W / 2}" y="${TILE + 34}" text-anchor="middle" font-size="11" fill="#64748b">${esc(category?.label ?? "")}</text>` +
+          `<text x="${NODE_W / 2}" y="${TILE + 34}" text-anchor="middle" font-size="11" fill="#64748b">${esc(tool.placeholder ? "Placeholder" : (category?.label ?? ""))}</text>` +
           `</g>`
         );
       }),
@@ -143,8 +158,8 @@ function connectionsMarkup(edges: IntegrationEdge[]): string {
   if (edges.length === 0) return "";
   const items = edges
     .map((e) => {
-      const from = TOOLS_BY_ID[e.source]?.name ?? e.source;
-      const to = TOOLS_BY_ID[e.target]?.name ?? e.target;
+      const from = getTool(e.source)?.name ?? e.source;
+      const to = getTool(e.target)?.name ?? e.target;
       const meta = TYPE_META[e.integrationType];
       return (
         `<li><div class="pair"><strong>${esc(from)}</strong> <span class="arrow">${e.direction === "two-way" ? "&harr;" : "&rarr;"}</span> <strong>${esc(to)}</strong>` +

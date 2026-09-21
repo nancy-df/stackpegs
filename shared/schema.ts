@@ -24,8 +24,15 @@ export const IntegrationResultSchema = z.object({
   edges: z.array(IntegrationEdgeSchema),
 });
 
+export const CustomToolInputSchema = z.object({
+  id: z.string().max(90),
+  name: z.string().max(80),
+  categoryId: z.string().max(30),
+});
+
 export const GenerateRequestSchema = z.object({
-  toolIds: z.array(z.string().max(64)).min(2).max(MAX_CANVAS_TOOLS),
+  toolIds: z.array(z.string().max(90)).min(2).max(MAX_CANVAS_TOOLS),
+  customTools: z.array(CustomToolInputSchema).max(MAX_CANVAS_TOOLS).optional(),
 });
 
 export type IntegrationType = (typeof INTEGRATION_TYPES)[number];

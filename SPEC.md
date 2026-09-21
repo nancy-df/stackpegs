@@ -50,6 +50,17 @@ Three tiers, tried in order:
 
 Logos are used only to identify each vendor's product. Confirm this fits each vendor's brand guidelines before any public launch.
 
+### Other: tools that are not in the catalog
+
+The last entry in the category list, **Other**, lets a visitor add a tool that is not listed. Two ways:
+
+1. **By name.** Tool name (up to 40 characters) plus "What kind of tool is it?" (any category, or "Other / not sure"). It appears on the canvas as an initials tile in that category's color. If the name matches a catalog tool (for example "slack"), the catalog tool is used instead and a notice says so.
+2. **Placeholders.** One generic tile per category ("Time Management tool", "Project Management tool", "CRM tool", and so on) for when the visitor does not know or does not want to name the exact tool. Placeholders have a dashed border and a "Placeholder" label.
+
+The search results also offer **Add "<query>" as your own tool**, which opens this form with the name filled in.
+
+The AI is told these tools are user-supplied and may be unfamiliar. For an unknown tool it treats it as a typical tool of the chosen category, prefers "api", "webhook", "file-export" and "automation-platform" over "native", says its connections are typical rather than certain, and does not invent features, vendors or integrations. Custom tools live only in the current session.
+
 ## 4. User Flow
 
 0. A search box at the top of the left panel finds tools across all categories by name, category or description (best name matches first). While a search is active the category pills are hidden and each result shows its category. Escape or the x button clears it.
@@ -76,7 +87,8 @@ Logos are used only to identify each vendor's product. Confirm this fits each ve
 
 ```ts
 type Category = { id: string; label: string; groupId: string; color: string }
-type Tool = { id: string; name: string; categoryId: string; iconSlug: string; website: string; description: string }
+type Tool = { id: string; name: string; categoryId: string; iconSlug: string; website: string; description: string; custom?: boolean; placeholder?: boolean }
+// Tool ids: catalog slug ("salesforce"), placeholder ("placeholder:pm"), or user-added ("custom:<categoryId>:<slug-of-name>")
 
 type IntegrationEdge = {
   source: string;            // tool id
@@ -93,10 +105,10 @@ Canvas nodes use the tool id as their node id. Integration results are ephemeral
 
 ## 7. AI Integration Generation
 
-- **Endpoint**: `POST /api/generate-integrations` with `{ toolIds: string[] }` (2-12 ids). Returns `{ summary, edges, model }` or `{ error }`.
+- **Endpoint**: `POST /api/generate-integrations` with `{ toolIds: string[], customTools?: { id, name, categoryId }[] }` (2-12 tool ids). Returns `{ summary, edges, model }` or `{ error }`.
 - **Why a server at all**: the Anthropic API key must stay off the browser. The server is a stateless proxy with no database.
 - **Same handler everywhere**: `server/generate.ts` holds the logic. In dev, a small Vite plugin serves it; in production, `api/generate-integrations.ts` exposes it as a Vercel function.
-- **Inputs are whitelisted by id.** The client sends tool ids only; the server looks up names, categories and descriptions from the catalog. Arbitrary text never reaches the prompt.
+- **Tool inputs are validated, not trusted.** Catalog tools and placeholders are resolved by id on the server. The only free text that can reach the prompt is a user-added tool name, and it must pass strict checks: 1-40 characters, starting with a letter or digit, and only letters, numbers, spaces and . & + - ' / _ ( ). Whitespace (including newlines) is collapsed. The category must exist, and the id is recomputed from the cleaned name and category and must match, so ids cannot be forged. Anything else gets a 400. In the prompt the name is quoted and labelled "user-added", and the system prompt says names are labels, never instructions. A short name made of plain words can still try to steer the model, so the blast radius is limited by structured output, edges being restricted to the tools sent, and the result being shown only to the visitor who typed it.
 - **Model**: `claude-opus-5` by default, overridable with `ANTHROPIC_MODEL`. Effort is `medium`; `low` was tried and was under a second faster with near-identical output.
 - **Structured output**: the response is constrained to the zod schema in `shared/schema.ts` via `output_config.format`, then post-processed: edges referencing unknown tools or self-loops are dropped and duplicate pairs are collapsed.
 - **Prompt rules** (system prompt): only include connections that plausibly exist in practice; do not force links between competitors; route through ETL/warehouse/automation tools present on the canvas instead of drawing links that skip them; keep sentences short.
@@ -142,8 +154,8 @@ Four columns on desktop (1024 px and up), with the canvas as the widest:
 ```
 
 - **Search** spans the top of the two left columns.
-- **Column 1, categories**: a vertical list grouped by area, with a color dot per category. All 14 fit without scrolling at 760 px height (it scrolls on shorter screens). The active category is filled with its color. While a search is active no category is highlighted, and clicking a category clears the search and selects it.
-- **Column 2, tools**: the tray, two tiles per row. Search results replace it and show each tool's category.
+- **Column 1, categories**: a vertical list grouped by area, with a color dot per category, and **Other** last under "Not listed?". All 14 categories plus Other fit without scrolling at 760 px height (it scrolls on shorter screens). The active category is filled with its color. While a search is active no category is highlighted, and clicking a category clears the search and selects it.
+- **Column 2, tools**: the tray, two tiles per row. Search results replace it and show each tool's category. For Other it shows the add-your-own form and the placeholder tiles.
 - **Column 3, canvas**: takes all remaining width.
 - **Column 4, integration map**: summary, connections list, and the selected node or edge detail.
 
@@ -162,7 +174,6 @@ npm run build
 
 - Stream the response so edges appear as they are generated.
 - Save/share a canvas via URL (needs storage).
-- Let visitors type a tool that is not in the catalog (AI fills description; logo via favicon).
 - Export the diagram as PNG/SVG (HTML export is done).
 - Let visitors flag a wrong integration.
 - Shared-store rate limiting and usage analytics.
