@@ -1,4 +1,4 @@
-import { TOOLS_BY_ID } from "../shared/catalog";
+import { TOOLS_BY_ID } from "../shared/catalog.js";
 
 export type FaviconResult =
   | { status: 200; contentType: string; body: ArrayBuffer }

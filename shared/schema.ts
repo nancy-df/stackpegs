@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MAX_CANVAS_TOOLS } from "./catalog";
+import { MAX_CANVAS_TOOLS } from "./catalog.js";
 
 export const INTEGRATION_TYPES = [
   "native",

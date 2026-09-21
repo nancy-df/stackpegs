@@ -1,11 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
-import { CATEGORIES_BY_ID, TOOLS_BY_ID } from "../shared/catalog";
+import { CATEGORIES_BY_ID, TOOLS_BY_ID } from "../shared/catalog.js";
 import {
   GenerateRequestSchema,
   IntegrationResultSchema,
   type IntegrationEdge,
-} from "../shared/schema";
+} from "../shared/schema.js";
 
 export type HandlerResult = { status: number; body: unknown };
 

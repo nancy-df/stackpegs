@@ -1,4 +1,4 @@
-import { generateIntegrations } from "../server/generate";
+import { generateIntegrations } from "../server/generate.js";
 
 export async function POST(request: Request): Promise<Response> {
   const body: unknown = await request.json().catch(() => null);

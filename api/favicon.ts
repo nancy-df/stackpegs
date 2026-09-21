@@ -1,4 +1,4 @@
-import { getFavicon } from "../server/favicon";
+import { getFavicon } from "../server/favicon.js";
 
 export async function GET(request: Request): Promise<Response> {
   const tool = new URL(request.url).searchParams.get("tool");
