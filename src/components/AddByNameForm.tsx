@@ -7,12 +7,14 @@ type Props = {
   initialText?: string;
   autoFocus?: boolean;
   onAdd: (names: string, categoryId: string) => string | null;
+  // When provided, Escape in the text box calls it (used to close the inline box).
+  onClose?: () => void;
 };
 
 const FIELD =
   "w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm text-slate-900 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100";
 
-export function AddByNameForm({ fixedCategoryId, initialText = "", autoFocus, onAdd }: Props) {
+export function AddByNameForm({ fixedCategoryId, initialText = "", autoFocus, onAdd, onClose }: Props) {
   const [text, setText] = useState(initialText);
   const [categoryId, setCategoryId] = useState(fixedCategoryId ?? OTHER_CATEGORY.id);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +32,11 @@ export function AddByNameForm({ fixedCategoryId, initialText = "", autoFocus, on
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Escape" && onClose) {
+      e.preventDefault();
+      onClose();
+      return;
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       e.currentTarget.form?.requestSubmit();

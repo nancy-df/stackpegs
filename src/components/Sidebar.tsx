@@ -199,14 +199,29 @@ export function Sidebar({ categoryId, onSelectCategory, onAddTool, onAddCustom, 
 
               {otherBoxOpen && (
                 <div className="mt-3 rounded-xl border border-indigo-200 bg-indigo-50/50 p-3 dark:border-indigo-900 dark:bg-indigo-950/20">
-                  <h3 className="mb-0.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-                    Add {category.label} tools
-                  </h3>
+                  <div className="mb-0.5 flex items-start justify-between gap-2">
+                    <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                      Add {category.label} tools
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setOtherBoxFor(null)}
+                      className="-mt-0.5 -mr-1 shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-800 focus-visible:ring-2 focus-visible:ring-indigo-500/40 focus-visible:outline-none dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100"
+                    >
+                      Close ✕
+                    </button>
+                  </div>
                   <p className="mb-2.5 text-[11px] text-slate-500 dark:text-slate-400">
                     Not in the list? Type the names below. The AI treats unfamiliar ones as typical{" "}
                     {category.label.toLowerCase()} tools.
                   </p>
-                  <AddByNameForm key={category.id} fixedCategoryId={category.id} autoFocus onAdd={onAddCustom} />
+                  <AddByNameForm
+                    key={category.id}
+                    fixedCategoryId={category.id}
+                    autoFocus
+                    onAdd={onAddCustom}
+                    onClose={() => setOtherBoxFor(null)}
+                  />
                 </div>
               )}
 

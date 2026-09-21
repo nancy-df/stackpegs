@@ -54,7 +54,7 @@ Logos are used only to identify each vendor's product. Confirm this fits each ve
 
 A visitor can add tools that are not listed, in three places:
 
-1. **An "Other" box at the end of every category's tools.** Clicking it opens a text box under the tiles: "Tool names, separated by commas" (for example `Acme Timer, Foo Tracker`). Each name becomes a tool of the category being browsed, shown as an initials tile in that category's color. The box stays open so more can be added, and closes when the visitor switches category.
+1. **An "Other" box at the end of every category's tools.** Clicking it opens a text box under the tiles: "Tool names, separated by commas" (for example `Acme Timer, Foo Tracker`). Each name becomes a tool of the category being browsed, shown as an initials tile in that category's color. The box stays open after adding so more can be added. It closes with its **Close** button, the Escape key, the Other tile (which toggles it), or by switching category.
 2. **"Other" pinned at the bottom of the category list** (outside the scrolling part, so it is always visible, even on short screens). It opens the same comma-separated box plus a "What kind of tools are they?" picker (any category, or "Other / not sure"), and the placeholders below.
 3. **Search results** end with **Add "<query>" as your own tool**, which opens the Other panel with the name filled in.
 
