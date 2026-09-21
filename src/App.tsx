@@ -341,6 +341,24 @@ function Workspace() {
             </ReactFlow>
           )}
 
+          {busy && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="pointer-events-none absolute inset-0 z-[5] grid place-items-center p-6"
+            >
+              <div className="flex max-w-sm flex-col items-center gap-3 rounded-3xl bg-white/75 px-10 py-7 text-center shadow-sm backdrop-blur-[2px] dark:bg-slate-900/75">
+                <span className="size-10 animate-spin rounded-full border-4 border-slate-300 border-t-indigo-600" />
+                <p className="animate-pulse text-2xl font-bold tracking-tight text-slate-500 dark:text-slate-300">
+                  Mapping integrations...
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  The AI is working out how your tools connect. This usually takes a few seconds.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="absolute top-[15px] right-9 left-9 z-10 flex flex-wrap justify-end gap-1.5 @max-[440px]:gap-1">
             <ToolbarButton
               onClick={() => setView((v) => (v === "stack" ? "free" : "stack"))}
@@ -359,7 +377,7 @@ function Workspace() {
                 aria-pressed={showAllConnections}
                 onClick={() => setShowAllConnections((v) => !v)}
                 disabled={visibleEdges.length === 0}
-                title="Show every connection with its label, or only the ones for the tool you point at"
+                title="Show every connection as a grey arrow, or only the ones for the tool you point at"
                 className={showAllConnections ? "!border-indigo-500 !bg-indigo-50 !text-indigo-700" : undefined}
               >
                 <span className="@max-[440px]:hidden">All connections</span>
@@ -384,12 +402,6 @@ function Workspace() {
 
           {(notice || nodes.length >= 2) && (
             <div className="absolute bottom-[15px] left-1/2 z-10 flex w-[min(480px,calc(100%-104px))] -translate-x-1/2 flex-col gap-2">
-              {busy && (
-                <div className="flex items-center gap-2 self-center rounded-full bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-lg">
-                  <span className="size-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                  Mapping integrations...
-                </div>
-              )}
               {integrations.status === "error" && !showRight && (
                 <div
                   role="alert"

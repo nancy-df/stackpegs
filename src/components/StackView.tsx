@@ -26,6 +26,7 @@ export function StackView(props: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(640);
   const [hoverId, setHoverId] = useState<string | null>(null);
+  const [hoverEdgeId, setHoverEdgeId] = useState<string | null>(null);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -51,13 +52,25 @@ export function StackView(props: Props) {
   );
   const routes = useMemo(() => routeStackEdges(layout, edges), [layout, edges]);
 
-  // What is in focus: a hovered or selected tool, or a selected connection.
+  // A short delay before un-hovering a line lets the pointer travel from the line onto its label.
+  const clearEdgeTimer = useRef<number | undefined>(undefined);
+  const enterEdge = (id: string) => {
+    window.clearTimeout(clearEdgeTimer.current);
+    setHoverEdgeId(id);
+  };
+  const leaveEdge = () => {
+    window.clearTimeout(clearEdgeTimer.current);
+    clearEdgeTimer.current = window.setTimeout(() => setHoverEdgeId(null), 150);
+  };
+
+  // What is in focus: a hovered line, a hovered or selected tool, or a selected connection.
   const focusToolId = hoverId ?? selectedToolId;
   const litEdges = useMemo(() => {
+    if (hoverEdgeId) return new Set([hoverEdgeId]);
     if (selectedEdgeId && !hoverId) return new Set([selectedEdgeId]);
     if (!focusToolId) return new Set<string>();
     return new Set(routes.filter((r) => r.a === focusToolId || r.b === focusToolId).map((r) => r.id));
-  }, [routes, focusToolId, selectedEdgeId, hoverId]);
+  }, [routes, focusToolId, selectedEdgeId, hoverId, hoverEdgeId]);
   const litTools = useMemo(() => {
     const set = new Set<string>();
     if (focusToolId) set.add(focusToolId);
@@ -70,7 +83,6 @@ export function StackView(props: Props) {
   }, [routes, litEdges, focusToolId]);
   const hasFocus = litEdges.size > 0 || !!focusToolId;
 
-  const typesShown = INTEGRATION_TYPES.filter((type) => routes.some((r) => r.edge.integrationType === type));
   const colors = [...new Set([...INTEGRATION_TYPES.map((t) => TYPE_META[t].color), QUIET])];
 
   return (
@@ -135,12 +147,12 @@ export function StackView(props: Props) {
             ))}
           </defs>
           {routes.map((r) => {
+            // Grey arrows by default; the type color appears only for the connections in focus.
             const lit = litEdges.has(r.id);
-            const color = TYPE_META[r.edge.integrationType].color;
-            const stroke = lit || (showAll && !hasFocus) ? color : QUIET;
-            const quiet = !lit && !(showAll && !hasFocus);
-            const opacity = lit ? 1 : hasFocus ? 0.08 : showAll ? 0.85 : 0.3;
-            const arrow = quiet ? undefined : `url(#stack-arrow-${stroke.slice(1)})`;
+            const interactive = lit || (!hasFocus && showAll);
+            const stroke = lit ? TYPE_META[r.edge.integrationType].color : QUIET;
+            const opacity = lit ? 1 : hasFocus ? 0.08 : showAll ? 0.9 : 0;
+            const arrow = `url(#stack-arrow-${stroke.slice(1)})`;
             const twoWay = r.edge.direction === "two-way";
             const markerEnd = !r.flipped || twoWay ? arrow : undefined;
             const markerStart = r.flipped || twoWay ? arrow : undefined;
@@ -150,7 +162,7 @@ export function StackView(props: Props) {
                   d={r.path}
                   fill="none"
                   stroke={stroke}
-                  strokeWidth={lit ? 2.5 : quiet ? 1.25 : 1.75}
+                  strokeWidth={lit ? 2 : 1.5}
                   markerEnd={markerEnd}
                   markerStart={markerStart}
                 />
@@ -159,7 +171,9 @@ export function StackView(props: Props) {
                   fill="none"
                   stroke="transparent"
                   strokeWidth={14}
-                  className="pointer-events-auto cursor-pointer"
+                  className={interactive ? "pointer-events-auto cursor-pointer" : "pointer-events-none"}
+                  onMouseEnter={() => enterEdge(r.id)}
+                  onMouseLeave={leaveEdge}
                   onClick={(e) => {
                     e.stopPropagation();
                     props.onSelectEdge(r.id);
@@ -222,13 +236,15 @@ export function StackView(props: Props) {
         )}
 
         {routes.map((r) => {
-          const lit = litEdges.has(r.id);
-          if (!(lit || (showAll && !hasFocus))) return null;
+          // Labels (Native, API, Data pipeline, ...) appear only for the connections in focus.
+          if (!litEdges.has(r.id)) return null;
           const meta = TYPE_META[r.edge.integrationType];
           return (
             <button
               key={`label:${r.id}`}
               type="button"
+              onMouseEnter={() => enterEdge(r.id)}
+              onMouseLeave={leaveEdge}
               onClick={(e) => {
                 e.stopPropagation();
                 props.onSelectEdge(r.id);
@@ -249,18 +265,6 @@ export function StackView(props: Props) {
           );
         })}
       </div>
-
-      {typesShown.length > 0 && (
-        <ul className="mx-auto mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400" style={{ width: layout.width }}>
-          <li className="font-semibold">Connections:</li>
-          {typesShown.map((type) => (
-            <li key={type} className="flex items-center gap-1.5">
-              <span className="h-0.5 w-4 rounded" style={{ background: TYPE_META[type].color }} />
-              {TYPE_META[type].label}
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }

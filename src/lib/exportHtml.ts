@@ -1,5 +1,5 @@
 import { CATEGORIES_BY_ID, type Tool } from "../../shared/catalog";
-import { INTEGRATION_TYPES, type IntegrationEdge } from "../../shared/schema";
+import type { IntegrationEdge } from "../../shared/schema";
 import { ICONS } from "../data/icons.generated";
 import { routeEdge, type Box, type Point } from "./edgeRoute";
 import { TYPE_META } from "./integrationTypes";
@@ -90,7 +90,8 @@ async function buildStackSvg(input: Pick<ExportInput, "edges"> & { stack: NonNul
   });
   const layout = layoutStack(items, STACK_WIDTH, input.stack.layerOf);
   const routes = routeStackEdges(layout, input.edges);
-  const colors = [...new Set(routes.map((r) => TYPE_META[r.edge.integrationType].color))];
+  // Plain grey arrows, like the on-screen view; each line carries its type as a label.
+  const GREY = "#94a3b8";
 
   const stripMarkup = layout.strips
     .map((strip, index) => {
@@ -117,12 +118,11 @@ async function buildStackSvg(input: Pick<ExportInput, "edges"> & { stack: NonNul
 
   const edgeMarkup = routes
     .map((r) => {
-      const color = TYPE_META[r.edge.integrationType].color;
-      const marker = `url(#arrow-${color.slice(1)})`;
+      const marker = `url(#arrow-${GREY.slice(1)})`;
       const twoWay = r.edge.direction === "two-way";
       const end = !r.flipped || twoWay ? ` marker-end="${marker}"` : "";
       const start = r.flipped || twoWay ? ` marker-start="${marker}"` : "";
-      return `<path d="${r.path}" fill="none" stroke="${color}" stroke-width="2" stroke-opacity="0.85"${end}${start}/>`;
+      return `<path d="${r.path}" fill="none" stroke="${GREY}" stroke-width="1.6" stroke-opacity="0.9"${end}${start}/>`;
     })
     .join("");
 
@@ -154,8 +154,8 @@ async function buildStackSvg(input: Pick<ExportInput, "edges"> & { stack: NonNul
       const w = meta.label.length * 6.4 + 20;
       return (
         `<g transform="translate(${Math.round(r.label.x)} ${Math.round(r.label.y)})">` +
-        `<rect x="${-w / 2}" y="-10" width="${w}" height="20" rx="10" fill="#fff" stroke="${meta.color}"/>` +
-        `<text text-anchor="middle" dominant-baseline="central" font-size="11" font-weight="600" fill="${meta.color}">${esc(meta.label)}</text></g>`
+        `<rect x="${-w / 2}" y="-10" width="${w}" height="20" rx="10" fill="#fff" stroke="#cbd5e1"/>` +
+        `<text text-anchor="middle" dominant-baseline="central" font-size="11" font-weight="600" fill="#475569">${esc(meta.label)}</text></g>`
       );
     })
     .join("");
@@ -165,17 +165,8 @@ async function buildStackSvg(input: Pick<ExportInput, "edges"> & { stack: NonNul
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${STACK_WIDTH} ${h}" width="${STACK_WIDTH}" ` +
     `style="max-width:100%;height:auto" role="img" aria-label="Integration diagram, grouped by layer" ` +
     `font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif">` +
-    `<defs>${markerDefs(colors)}</defs>${stripMarkup}${edgeMarkup}${tileMarkup}${labelMarkup}</svg>`
+    `<defs>${markerDefs([GREY])}</defs>${stripMarkup}${edgeMarkup}${tileMarkup}${labelMarkup}</svg>`
   );
-}
-
-function legendMarkup(edges: IntegrationEdge[]): string {
-  const used = INTEGRATION_TYPES.filter((type) => edges.some((e) => e.integrationType === type));
-  if (used.length === 0) return "";
-  const items = used
-    .map((type) => `<li><span style="background:${TYPE_META[type].color}"></span>${esc(TYPE_META[type].label)}</li>`)
-    .join("");
-  return `<ul class="legend"><li class="lead">Connections</li>${items}</ul>`;
 }
 
 function markerDefs(colors: string[]): string {
@@ -298,10 +289,6 @@ h2{margin:32px 0 10px;font-size:13px;letter-spacing:.06em;text-transform:upperca
 .meta{margin:0;color:#64748b;font-size:14px}
 .diagram{margin-top:24px;padding:16px;background:#fff;border:1px solid #e2e8f0;border-radius:16px;overflow:auto;text-align:center}
 .summary{margin:0;font-size:16px}
-.legend{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12px;color:#475569}
-.legend li{display:flex;align-items:center;gap:6px}
-.legend .lead{font-weight:600;color:#64748b}
-.legend span{display:inline-block;width:18px;height:3px;border-radius:2px}
 .connections{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .connections li{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px}
 .connections p{margin:4px 0 0;font-size:14px;color:#334155}
@@ -314,7 +301,6 @@ footer{margin-top:32px;font-size:12px;color:#64748b}
 
 export async function buildHtml(input: ExportInput): Promise<string> {
   const svg = input.stack ? await buildStackSvg({ edges: input.edges, stack: input.stack }) : await buildSvg(input);
-  const legend = input.stack ? legendMarkup(input.edges) : "";
   const date = new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
   const toolCount = input.nodes.length;
   const summary = input.summary && input.edges.length > 0
@@ -336,7 +322,6 @@ export async function buildHtml(input: ExportInput): Promise<string> {
 <p class="meta">${toolCount} tool${toolCount === 1 ? "" : "s"} &middot; generated with StackPegs on ${esc(date)}</p>
 </header>
 <div class="diagram">${svg}</div>
-${legend}
 ${summary}
 ${connectionsMarkup(input.edges)}
 <footer>Integration details are AI-generated and may be incomplete or wrong. Check each vendor's documentation before relying on them.</footer>
