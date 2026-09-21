@@ -8,6 +8,7 @@ import { ToolLogo } from "./ToolLogo";
 export const edgeId = (e: Pick<IntegrationEdge, "source" | "target">) => `${e.source}|${e.target}`;
 
 type Props = {
+  open: boolean;
   toolIds: string[];
   edges: IntegrationEdge[];
   summary: string | null;
@@ -180,16 +181,24 @@ export function DetailPanel(props: Props) {
   }
 
   return (
-    <aside className="flex min-h-0 flex-col border-t border-slate-200 bg-white lg:w-72 lg:shrink-0 lg:border-t-0 lg:border-l dark:border-slate-800 dark:bg-slate-900">
-      <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-800">
-        <h2 className="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-          {selectedEdge ? "Integration" : selectedTool ? "Tool" : "3. Integration map"}
-        </h2>
+    <aside
+      inert={!props.open}
+      aria-hidden={!props.open}
+      className={`flex min-h-0 flex-col overflow-hidden border-t border-slate-200 bg-white lg:shrink-0 lg:border-t-0 lg:transition-[width] lg:duration-200 dark:border-slate-800 dark:bg-slate-900 ${
+        props.open ? "lg:w-72 lg:border-l" : "lg:w-0 lg:border-l-0"
+      }`}
+    >
+      <div className="flex min-h-0 flex-1 flex-col lg:w-72">
+        <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-800">
+          <h2 className="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+            {selectedEdge ? "Integration" : selectedTool ? "Tool" : "3. Integration map"}
+          </h2>
+        </div>
+        <div className="thin-scroll min-h-0 flex-1 overflow-y-auto p-4">{body}</div>
+        <p className="border-t border-slate-200 px-4 py-2.5 text-[11px] leading-snug text-slate-500 dark:border-slate-800 dark:text-slate-400">
+          Integration details are AI-generated and may be incomplete or wrong. Check each vendor's docs before relying on them.
+        </p>
       </div>
-      <div className="thin-scroll min-h-0 flex-1 overflow-y-auto p-4">{body}</div>
-      <p className="border-t border-slate-200 px-4 py-2.5 text-[11px] leading-snug text-slate-500 dark:border-slate-800 dark:text-slate-400">
-        Integration details are AI-generated and may be incomplete or wrong. Check each vendor's docs before relying on them.
-      </p>
     </aside>
   );
 }

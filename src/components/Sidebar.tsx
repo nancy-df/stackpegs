@@ -6,6 +6,7 @@ import { OtherPanel } from "./OtherPanel";
 import { OtherTile, ToolTile } from "./ToolTile";
 
 type Props = {
+  open: boolean;
   categoryId: string;
   onSelectCategory: (id: string) => void;
   onAddTool: (toolId: string) => void;
@@ -34,7 +35,7 @@ const ROW =
 const ROW_IDLE =
   "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 lg:bg-transparent dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 lg:dark:bg-transparent";
 
-export function Sidebar({ categoryId, onSelectCategory, onAddTool, onAddCustom, onCanvas }: Props) {
+export function Sidebar({ open, categoryId, onSelectCategory, onAddTool, onAddCustom, onCanvas }: Props) {
   const [query, setQuery] = useState("");
   const [prefill, setPrefill] = useState({ text: "", nonce: 0 });
   // Which category's inline "Other" box is open (only one at a time).
@@ -54,7 +55,14 @@ export function Sidebar({ categoryId, onSelectCategory, onAddTool, onAddCustom, 
   };
 
   return (
-    <aside className="flex min-h-0 flex-col border-b border-slate-200 bg-white lg:w-[400px] lg:shrink-0 lg:border-r lg:border-b-0 dark:border-slate-800 dark:bg-slate-900">
+    <aside
+      inert={!open}
+      aria-hidden={!open}
+      className={`flex min-h-0 flex-col overflow-hidden border-b border-slate-200 bg-white lg:shrink-0 lg:border-b-0 lg:transition-[width] lg:duration-200 dark:border-slate-800 dark:bg-slate-900 ${
+        open ? "lg:w-[400px] lg:border-r" : "lg:w-0 lg:border-r-0"
+      }`}
+    >
+      <div className="flex min-h-0 flex-1 flex-col lg:w-[400px]">
       <div className="shrink-0 border-b border-slate-200 p-3 dark:border-slate-800">
         <label className="relative block">
           <span className="sr-only">Search tools</span>
@@ -242,6 +250,7 @@ export function Sidebar({ categoryId, onSelectCategory, onAddTool, onAddCustom, 
             </>
           )}
         </div>
+      </div>
       </div>
     </aside>
   );

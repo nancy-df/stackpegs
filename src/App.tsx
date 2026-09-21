@@ -19,7 +19,9 @@ import { IntegrationEdgeView, type IntegrationFlowEdge } from "./components/Inte
 import { Sidebar } from "./components/Sidebar";
 import { DRAG_MIME } from "./components/ToolTile";
 import { ToolNode, type ToolFlowNode } from "./components/ToolNode";
+import { PanelToggle } from "./components/PanelToggle";
 import { useIntegrations } from "./hooks/useIntegrations";
+import { useIsDesktop } from "./hooks/useIsDesktop";
 import { buildHtml, downloadHtml } from "./lib/exportHtml";
 import { TYPE_META } from "./lib/integrationTypes";
 import { NODE_W, freeSpot, layoutNodes } from "./lib/layout";
@@ -43,6 +45,12 @@ function Workspace() {
   const [notice, setNotice] = useState<string | null>(null);
   const [layouting, setLayouting] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [leftOpen, setLeftOpen] = useState(true);
+  const [rightOpen, setRightOpen] = useState(true);
+  // Panels can only be collapsed in the desktop layout; on narrow screens they always show.
+  const isDesktop = useIsDesktop();
+  const showLeft = leftOpen || !isDesktop;
+  const showRight = rightOpen || !isDesktop;
   const { screenToFlowPosition, fitView } = useReactFlow();
   const canvasWidth = useStore((s) => s.width);
   const canvasHeight = useStore((s) => s.height);
@@ -255,6 +263,7 @@ function Workspace() {
 
       <main className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <Sidebar
+          open={showLeft}
           categoryId={categoryId}
           onSelectCategory={setCategoryId}
           onAddTool={(id) => addTool(id)}
@@ -284,7 +293,7 @@ function Workspace() {
             <Background gap={22} />
             <Controls showInteractive={false} />
 
-            <Panel position="top-right" className="flex gap-1.5">
+            <Panel position="top-right" className="flex gap-1.5 !mr-9">
               <ToolbarButton onClick={runLayout} disabled={nodes.length < 2}>
                 Auto-layout
               </ToolbarButton>
@@ -296,17 +305,29 @@ function Workspace() {
               </ToolbarButton>
             </Panel>
 
-            {busy && (
-              <Panel position="top-center">
-                <div className="flex items-center gap-2 rounded-full bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-lg">
-                  <span className="size-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                  Mapping integrations...
-                </div>
-              </Panel>
-            )}
-
             {(notice || nodes.length >= 2) && (
               <Panel position="bottom-center" className="flex w-[min(480px,calc(100%-104px))] flex-col gap-2">
+                {busy && (
+                  <div className="flex items-center gap-2 self-center rounded-full bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-lg">
+                    <span className="size-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                    Mapping integrations...
+                  </div>
+                )}
+                {integrations.status === "error" && !showRight && (
+                  <div
+                    role="alert"
+                    className="flex max-w-full items-center gap-2 self-center rounded-2xl bg-red-700 py-1.5 pr-1.5 pl-3 text-xs font-medium text-white shadow-lg"
+                  >
+                    <span>{integrations.error ?? "Something went wrong."}</span>
+                    <button
+                      type="button"
+                      onClick={() => integrations.regenerate()}
+                      className="shrink-0 rounded-full bg-white/20 px-2.5 py-0.5 hover:bg-white/30"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
                 {notice && (
                   <div
                     role="status"
@@ -333,9 +354,13 @@ function Workspace() {
               </div>
             </div>
           )}
+
+          <PanelToggle side="left" open={showLeft} label="tools panel" onClick={() => setLeftOpen((v) => !v)} />
+          <PanelToggle side="right" open={showRight} label="integration map" onClick={() => setRightOpen((v) => !v)} />
         </section>
 
         <DetailPanel
+          open={showRight}
           toolIds={toolIds}
           edges={visibleEdges}
           summary={integrations.result?.summary ?? null}
