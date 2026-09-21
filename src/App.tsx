@@ -29,6 +29,7 @@ import { getTool, registerCustomTool } from "./lib/tools";
 
 const nodeTypes = { tool: ToolNode };
 const edgeTypes = { integration: IntegrationEdgeView };
+const QUIET_EDGE = "#94a3b8";
 
 export default function App() {
   return (
@@ -42,6 +43,8 @@ function Workspace() {
   const [categoryId, setCategoryId] = useState(CATEGORIES[0]!.id);
   const [nodes, setNodes, onNodesChange] = useNodesState<ToolFlowNode>([]);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+  const [hoverEdgeId, setHoverEdgeId] = useState<string | null>(null);
+  const [hoverNodeId, setHoverNodeId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [layouting, setLayouting] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -74,25 +77,50 @@ function Workspace() {
     setNodes((nds) => nds.map((n) => (n.selected ? { ...n, selected: false } : n)));
   }, [setNodes]);
 
-  const flowEdges = useMemo<IntegrationFlowEdge[]>(
-    () =>
-      visibleEdges.map((e) => {
-        const id = edgeId(e);
-        const color = TYPE_META[e.integrationType].color;
-        const marker = { type: MarkerType.ArrowClosed, color, width: 18, height: 18 };
-        return {
-          id,
-          source: e.source,
-          target: e.target,
-          type: "integration",
-          selected: id === selectedEdgeId,
-          data: { edge: e, onSelect: selectEdge },
-          markerEnd: marker,
-          markerStart: e.direction === "two-way" ? marker : undefined,
-        };
-      }),
-    [visibleEdges, selectedEdgeId, selectEdge],
-  );
+  // Hover state can outlive what it points at (a removed tool, a switched view), so reset it then.
+  useEffect(() => {
+    setHoverEdgeId(null);
+    setHoverNodeId(null);
+  }, [view, presentKey, integrations.version]);
+
+  // A short delay before un-hovering a line lets the pointer travel from the line onto its label.
+  const clearHoverTimer = useRef<number | undefined>(undefined);
+  const enterEdge = useCallback((id: string) => {
+    window.clearTimeout(clearHoverTimer.current);
+    setHoverEdgeId(id);
+  }, []);
+  const leaveEdge = useCallback(() => {
+    window.clearTimeout(clearHoverTimer.current);
+    clearHoverTimer.current = window.setTimeout(() => setHoverEdgeId(null), 150);
+  }, []);
+
+  const selectedNodeId = nodes.find((n) => n.selected)?.id ?? null;
+
+  // Same rule as the Stack view: connections are grey until something is in focus, then only those light up.
+  const flowEdges = useMemo<IntegrationFlowEdge[]>(() => {
+    const focusNodeId = hoverNodeId ?? selectedNodeId;
+    const hasFocus = !!(hoverEdgeId ?? selectedEdgeId ?? focusNodeId);
+    return visibleEdges.map((e) => {
+      const id = edgeId(e);
+      const lit = hoverEdgeId
+        ? id === hoverEdgeId
+        : selectedEdgeId && !hoverNodeId
+          ? id === selectedEdgeId
+          : !!focusNodeId && (e.source === focusNodeId || e.target === focusNodeId);
+      const color = lit ? TYPE_META[e.integrationType].color : QUIET_EDGE;
+      const marker = { type: MarkerType.ArrowClosed, color, width: 18, height: 18 };
+      return {
+        id,
+        source: e.source,
+        target: e.target,
+        type: "integration",
+        selected: id === selectedEdgeId,
+        data: { edge: e, lit, dim: hasFocus && !lit, onSelect: selectEdge, onEnter: enterEdge, onLeave: leaveEdge },
+        markerEnd: marker,
+        markerStart: e.direction === "two-way" ? marker : undefined,
+      };
+    });
+  }, [visibleEdges, selectedEdgeId, hoverEdgeId, hoverNodeId, selectedNodeId, selectEdge, enterEdge, leaveEdge]);
 
   useEffect(() => {
     if (!notice) return;
@@ -289,7 +317,6 @@ function Workspace() {
     setSelectedEdgeId(null);
   }, [setNodes]);
 
-  const selectedNodeId = nodes.find((n) => n.selected)?.id ?? null;
   const busy = integrations.status === "loading";
 
   return (
@@ -335,6 +362,8 @@ function Workspace() {
               edgeTypes={edgeTypes}
               onNodesChange={onNodesChange}
               onNodeClick={() => setSelectedEdgeId(null)}
+              onNodeMouseEnter={(_, node) => setHoverNodeId(node.id)}
+              onNodeMouseLeave={() => setHoverNodeId(null)}
               onEdgeClick={(_, edge) => selectEdge(edge.id)}
               onPaneClick={() => setSelectedEdgeId(null)}
               nodesConnectable={false}
@@ -363,6 +392,9 @@ function Workspace() {
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   The AI is working out how your tools connect. This usually takes a few seconds.
+                </p>
+                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                  You can continue dragging logos to the canvas now.
                 </p>
               </div>
             </div>

@@ -80,6 +80,8 @@ function wrapName(name: string, max = 13): string[] {
   return [lines[0]!, (lines[1] + "...").slice(0, max)];
 }
 
+// Plain grey arrows, like the on-screen view; each line carries its type as a label.
+const GREY = "#94a3b8";
 const STACK_WIDTH = 1000;
 
 // The same strips, category boxes and tiles as the Stack view, drawn as a static SVG.
@@ -90,9 +92,6 @@ async function buildStackSvg(input: Pick<ExportInput, "edges"> & { stack: NonNul
   });
   const layout = layoutStack(items, STACK_WIDTH, input.stack.layerOf);
   const routes = routeStackEdges(layout, input.edges);
-  // Plain grey arrows, like the on-screen view; each line carries its type as a label.
-  const GREY = "#94a3b8";
-
   const stripMarkup = layout.strips
     .map((strip, index) => {
       // Plain grey and white bands, alternating, with neutral borders.
@@ -208,14 +207,12 @@ async function buildSvg({ nodes, edges }: Pick<ExportInput, "nodes" | "edges">) 
   const width = Math.max(...xs) + PAD - minX;
   const height = Math.max(...ys) + PAD - minY;
 
-  const colors = [...new Set(routed.map(({ edge }) => TYPE_META[edge.integrationType].color))];
-
+  // Same look as the Stack export: grey arrows, with the type named in a grey pill.
+  const marker = `url(#arrow-${GREY.slice(1)})`;
   const edgeMarkup = routed
     .map(({ edge, route }) => {
-      const color = TYPE_META[edge.integrationType].color;
-      const marker = `url(#arrow-${color.slice(1)})`;
       const start = edge.direction === "two-way" ? ` marker-start="${marker}"` : "";
-      return `<path d="${route.path}" fill="none" stroke="${color}" stroke-width="2.25" marker-end="${marker}"${start}/>`;
+      return `<path d="${route.path}" fill="none" stroke="${GREY}" stroke-width="1.6" marker-end="${marker}"${start}/>`;
     })
     .join("");
 
@@ -245,8 +242,8 @@ async function buildSvg({ nodes, edges }: Pick<ExportInput, "nodes" | "edges">) 
       const w = meta.label.length * 6.4 + 20;
       return (
         `<g transform="translate(${route.label.x} ${route.label.y})">` +
-        `<rect x="${-w / 2}" y="-10" width="${w}" height="20" rx="10" fill="#fff" stroke="${meta.color}"/>` +
-        `<text text-anchor="middle" dominant-baseline="central" font-size="11" font-weight="600" fill="${meta.color}">${esc(meta.label)}</text>` +
+        `<rect x="${-w / 2}" y="-10" width="${w}" height="20" rx="10" fill="#fff" stroke="#cbd5e1"/>` +
+        `<text text-anchor="middle" dominant-baseline="central" font-size="11" font-weight="600" fill="#475569">${esc(meta.label)}</text>` +
         `</g>`
       );
     })
@@ -257,7 +254,7 @@ async function buildSvg({ nodes, edges }: Pick<ExportInput, "nodes" | "edges">) 
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${r(width)} ${r(height)}" width="${r(width)}" ` +
     `style="max-width:100%;height:auto" role="img" aria-label="Integration diagram" ` +
     `font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif">` +
-    `<defs>${markerDefs(colors)}</defs>` +
+    `<defs>${markerDefs([GREY])}</defs>` +
     `<g transform="translate(${-r(minX)} ${-r(minY)})">${edgeMarkup}${nodeMarkup}${labelMarkup}</g>` +
     `</svg>`
   );
