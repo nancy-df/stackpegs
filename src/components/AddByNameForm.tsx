@@ -26,7 +26,9 @@ export function AddByNameForm({ fixedCategoryId, initialText = "", autoFocus, on
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    const problem = onAdd(text, fixedCategoryId ?? categoryId);
+    // Read the box itself: some keyboards, dictation and extensions change it without React seeing an input event.
+    const value = textRef.current?.value ?? text;
+    const problem = onAdd(value, fixedCategoryId ?? categoryId);
     setError(problem);
     if (!problem) setText("");
   };
@@ -39,6 +41,9 @@ export function AddByNameForm({ fixedCategoryId, initialText = "", autoFocus, on
     }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
+      // Enter can also confirm an IME suggestion, auto-repeat while held, or land on the box right after a
+      // successful add. None of those should submit or show an error; the button still explains an empty box.
+      if (e.nativeEvent.isComposing || e.repeat || !e.currentTarget.value.trim()) return;
       e.currentTarget.form?.requestSubmit();
     }
   };

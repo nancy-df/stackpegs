@@ -58,6 +58,8 @@ A visitor can add tools that are not listed, in three places:
 2. **"Other" pinned at the bottom of the category list** (outside the scrolling part, so it is always visible, even on short screens). It opens the same comma-separated box plus a "What kind of tools are they?" picker (any category, or "Other / not sure"), and the placeholders below.
 3. **Search results** end with **Add "<query>" as your own tool**, which opens the Other panel with the name filled in.
 
+Enter adds the names (Shift+Enter would make a new line). Enter is ignored while an input method is confirming text, during key auto-repeat, and when the box is empty, so a second press right after adding does nothing; the **Add to canvas** button on an empty box explains what to type. The text is read from the box at the moment of submitting.
+
 Rules for names: separated by commas (semicolons and new lines also work), duplicates collapsed, up to 12 per submission, and each must pass the validation in section 7. If any name is invalid, nothing is added and the message names the offending entry. A name that matches a catalog tool (for example "tableau") uses the catalog tool and a notice says so. Names that would exceed the 12-tool canvas limit are skipped with a notice.
 
 **Placeholders.** One generic tile per category ("Time Management tool", "Project Management tool", "CRM tool", and so on) in the Other panel, for when the visitor does not know or does not want to name the exact tool. They have a dashed border and a "Placeholder" label.
