@@ -23,7 +23,7 @@ export function ToolNode({ id, data, selected }: NodeProps<ToolFlowNode>) {
         }`}
         style={{ borderColor: category?.color ?? "#94a3b8", borderStyle: tool.placeholder ? "dashed" : "solid" }}
       >
-        <ToolLogo tool={tool} className="size-10" />
+        <ToolLogo tool={tool} className="size-8" />
       </div>
 
       <div className="text-center leading-tight">

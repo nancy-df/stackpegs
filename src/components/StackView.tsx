@@ -203,7 +203,7 @@ export function StackView(props: Props) {
                     }`}
                     style={{ borderColor: category?.color ?? QUIET, borderStyle: tool.placeholder ? "dashed" : "solid" }}
                   >
-                    <ToolLogo tool={tool} className="size-9" />
+                    <ToolLogo tool={tool} className="size-7" />
                     <span className="line-clamp-2 text-[11px] leading-tight font-semibold text-slate-800">{tool.name}</span>
                   </button>
                   <button

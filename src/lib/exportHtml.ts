@@ -5,7 +5,7 @@ import { routeEdge, type Box, type Point } from "./edgeRoute";
 import { TYPE_META } from "./integrationTypes";
 import { NODE_H, NODE_W } from "./layout";
 import { faviconUrl, hueFor, initials } from "./logo";
-import { layoutStack, routeStackEdges } from "./stackLayout";
+import { TILE_LOGO, layoutStack, routeStackEdges } from "./stackLayout";
 import { getTool } from "./tools";
 
 export type ExportInput = {
@@ -18,7 +18,7 @@ export type ExportInput = {
 
 const PAD = 48;
 const TILE = 72;
-const LOGO = 40;
+const LOGO = 32;
 
 const ESCAPES: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ESCAPES[c]!);
@@ -132,7 +132,7 @@ async function buildStackSvg(input: Pick<ExportInput, "edges"> & { stack: NonNul
         const tool = getTool(t.toolId);
         if (!tool) return "";
         const cc = CATEGORIES_BY_ID[tool.categoryId]?.color ?? "#94a3b8";
-        const logo = await logoSvg(tool, t.x + (t.w - 32) / 2, t.y + 10, 32);
+        const logo = await logoSvg(tool, t.x + (t.w - TILE_LOGO) / 2, t.y + 9, TILE_LOGO);
         const lines = wrapName(tool.name);
         return (
           `<rect x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}" rx="12" fill="#fff" stroke="${cc}" stroke-width="2"${tool.placeholder ? ` stroke-dasharray="5 3"` : ""}/>` +
@@ -140,7 +140,7 @@ async function buildStackSvg(input: Pick<ExportInput, "edges"> & { stack: NonNul
           lines
             .map(
               (line, i) =>
-                `<text x="${t.x + t.w / 2}" y="${t.y + 58 + i * 13}" text-anchor="middle" font-size="11" font-weight="600" fill="#0f172a">${esc(line)}</text>`,
+                `<text x="${t.x + t.w / 2}" y="${t.y + 9 + TILE_LOGO + 14 + i * 13}" text-anchor="middle" font-size="11" font-weight="600" fill="#0f172a">${esc(line)}</text>`,
             )
             .join("")
         );

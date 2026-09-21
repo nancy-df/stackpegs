@@ -3,7 +3,9 @@ import { LAYERS, type Layer } from "../../shared/layers";
 import type { IntegrationEdge } from "../../shared/schema";
 
 export const TILE_W = 88;
-export const TILE_H = 84;
+export const TILE_H = 76;
+// Logo size inside a Stack tile, in px. The on-screen tile and the HTML download both use it.
+export const TILE_LOGO = 28;
 const TILE_GAP = 8;
 const BOX_PAD = 8;
 const BOX_HEADER = 22;
