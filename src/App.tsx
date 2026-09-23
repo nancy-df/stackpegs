@@ -385,16 +385,14 @@ function Workspace() {
               aria-live="polite"
               className="pointer-events-none absolute inset-0 z-[5] grid place-items-center p-6"
             >
-              <div className="flex max-w-sm flex-col items-center gap-3 rounded-3xl bg-white/75 px-10 py-7 text-center shadow-sm backdrop-blur-[2px] dark:bg-slate-900/75">
-                <span className="size-10 animate-spin rounded-full border-4 border-slate-300 border-t-indigo-600" />
-                <p className="animate-pulse text-2xl font-bold tracking-tight text-slate-500 dark:text-slate-300">
-                  Mapping integrations...
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+              <div className="flex max-w-xs flex-col items-center gap-1.5 rounded-2xl bg-white/70 px-6 py-4 text-center shadow-sm backdrop-blur-[2px] dark:bg-slate-900/70">
+                <span className="size-6 animate-spin rounded-full border-2 border-slate-300 border-t-indigo-600" />
+                <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-300">Mapping integrations...</p>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500">
                   The AI is working out how your tools connect. This usually takes a few seconds.
                 </p>
-                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                  You can continue dragging logos to the canvas now.
+                <p className="text-[11px] font-medium text-blue-500 dark:text-blue-400">
+                  You can continue dragging logos to the canvas.
                 </p>
               </div>
             </div>
