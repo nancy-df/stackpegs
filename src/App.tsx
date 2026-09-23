@@ -128,15 +128,27 @@ function Workspace() {
     return () => clearTimeout(timer);
   }, [notice]);
 
+  // Guards against an earlier call's timers (an automatic run overlapping a manual click, or two quick
+  // clicks) turning "layouting" back off before the latest run has actually finished.
+  const layoutTimers = useRef<{ fit?: number; done?: number }>({});
   const runLayout = useCallback(() => {
     setLayouting(true);
+    window.clearTimeout(layoutTimers.current.fit);
+    window.clearTimeout(layoutTimers.current.done);
     // Measure the canvas itself: the flow's own size is 0 while the Stack view is showing.
     const box = canvasRef.current;
     const viewport = { width: Math.max(box?.clientWidth ?? 0, 300), height: Math.max(box?.clientHeight ?? 0, 300) };
     setNodes((nds) => layoutNodes(nds, visibleEdges, viewport));
-    setTimeout(() => fitView({ padding: 0.12, duration: 450, maxZoom: 1 }), 80);
-    setTimeout(() => setLayouting(false), 700);
+    layoutTimers.current.fit = window.setTimeout(() => fitView({ padding: 0.12, duration: 450, maxZoom: 1 }), 80);
+    layoutTimers.current.done = window.setTimeout(() => setLayouting(false), 700);
   }, [setNodes, visibleEdges, fitView]);
+
+  // Same as runLayout, but for the toolbar button: the arrangement is deterministic, so if nothing was
+  // dragged out of place it can look like the click did nothing. This adds a notice so it is clearly felt.
+  const runLayoutFromButton = useCallback(() => {
+    runLayout();
+    setNotice("Rearranged the diagram.");
+  }, [runLayout]);
 
   useEffect(() => {
     if (view === "free" && integrations.version > 0 && visibleEdges.length > 0) runLayout();
@@ -423,8 +435,12 @@ function Workspace() {
                 <span className="hidden @max-[440px]:inline">Connections</span>
               </ToolbarButton>
             ) : (
-              <ToolbarButton onClick={runLayout} disabled={nodes.length < 2}>
-                Auto-layout
+              <ToolbarButton
+                onClick={runLayoutFromButton}
+                disabled={nodes.length < 2 || layouting}
+                title="Rearrange the tools left to right and fit them to the screen"
+              >
+                {layouting ? "Arranging..." : "Auto-layout"}
               </ToolbarButton>
             )}
             <ToolbarButton onClick={downloadCanvas} disabled={nodes.length === 0 || exporting}>
