@@ -168,36 +168,43 @@ function Workspace() {
   // Adds several tools in one go, each at its own free spot. Returns any notices for the visitor.
   const addTools = useCallback(
     (toolIds: string[], dropPosition?: XYPosition): string[] => {
-      let current: ToolFlowNode[] = nodes;
+      // The dedup check and the update both read the same functional-updater snapshot, so two calls
+      // landing in the same tick (e.g. a fast double Enter or double click) can't both decide "not
+      // already there" and each add their own copy of the same tool.
       const added: ToolFlowNode[] = [];
       const alreadyThere: string[] = [];
       let skippedForLimit = 0;
 
-      for (const toolId of new Set(toolIds)) {
-        const tool = getTool(toolId);
-        if (!tool) continue;
-        if (current.some((n) => n.id === toolId)) {
-          alreadyThere.push(tool.name);
-          continue;
+      setNodes((nds) => {
+        added.length = 0;
+        alreadyThere.length = 0;
+        skippedForLimit = 0;
+        let current: ToolFlowNode[] = nds;
+        for (const toolId of new Set(toolIds)) {
+          const tool = getTool(toolId);
+          if (!tool) continue;
+          if (current.some((n) => n.id === toolId)) {
+            alreadyThere.push(tool.name);
+            continue;
+          }
+          if (current.length >= MAX_CANVAS_TOOLS) {
+            skippedForLimit++;
+            continue;
+          }
+          const position = dropPosition
+            ? { x: dropPosition.x - NODE_W / 2, y: dropPosition.y - 36 }
+            : freeSpot(current);
+          const node: ToolFlowNode = { id: toolId, type: "tool", position, data: { toolId } };
+          current = [...current, node];
+          added.push(node);
         }
-        if (current.length >= MAX_CANVAS_TOOLS) {
-          skippedForLimit++;
-          continue;
+        if (added.length > 0) return current.map((n) => (n.selected ? { ...n, selected: false } : n));
+        if (alreadyThere.length > 0 && toolIds.length === 1) {
+          return nds.map((n) => ({ ...n, selected: n.id === toolIds[0] }));
         }
-        const position = dropPosition
-          ? { x: dropPosition.x - NODE_W / 2, y: dropPosition.y - 36 }
-          : freeSpot(current);
-        const node: ToolFlowNode = { id: toolId, type: "tool", position, data: { toolId } };
-        current = [...current, node];
-        added.push(node);
-      }
-
-      if (added.length > 0) {
-        setNodes((nds) => [...nds.map((n) => (n.selected ? { ...n, selected: false } : n)), ...added]);
-        setSelectedEdgeId(null);
-      } else if (alreadyThere.length > 0 && toolIds.length === 1) {
-        setNodes((nds) => nds.map((n) => ({ ...n, selected: n.id === toolIds[0] })));
-      }
+        return nds;
+      });
+      if (added.length > 0) setSelectedEdgeId(null);
 
       const notices: string[] = [];
       if (alreadyThere.length > 0) {
@@ -209,7 +216,7 @@ function Workspace() {
       if (notices.length > 0) setNotice(notices.join(" "));
       return notices;
     },
-    [nodes, setNodes],
+    [setNodes],
   );
 
   const addTool = useCallback(
