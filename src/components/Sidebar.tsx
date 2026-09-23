@@ -220,8 +220,8 @@ export function Sidebar({ open, categoryId, onSelectCategory, onAddTool, onAddCu
                     </button>
                   </div>
                   <p className="mb-2.5 text-[11px] text-slate-500 dark:text-slate-400">
-                    Not in the list? Type the names below. The AI treats unfamiliar ones as typical{" "}
-                    {category.label.toLowerCase()} tools.
+                    Not in the list? Type the names below. The AI treats unfamiliar ones as a typical tool in{" "}
+                    {category.label}.
                   </p>
                   <AddByNameForm
                     key={category.id}
