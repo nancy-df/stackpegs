@@ -15,6 +15,10 @@ const MIN_BOX_W = 152;
 const STRIP_PAD = 6;
 const STRIP_HEADER = 22;
 export const STRIP_GAP = 12;
+// A connection between two tools in the same strip dips below the row (see routeStackEdges). Reserving this
+// much extra room at the strip's bottom keeps that dip inside the strip's own background instead of spilling
+// into the plain canvas gap below it, where it would look disconnected from either tool.
+const SAME_STRIP_DIP_ROOM = 46;
 
 export type StackTile = { toolId: string; x: number; y: number; w: number; h: number };
 export type StackBox = { categoryId: string; x: number; y: number; w: number; h: number; tiles: StackTile[] };
@@ -34,7 +38,12 @@ function boxNaturalWidth(count: number): number {
 
 // Places tools into layer strips, category boxes and tile slots for a given canvas width.
 // Tiles keep the order in which they were added. Empty layers are left out.
-export function layoutStack(items: Item[], width: number, layerOf: (toolId: string) => string): StackLayout {
+export function layoutStack(
+  items: Item[],
+  width: number,
+  layerOf: (toolId: string) => string,
+  edges: IntegrationEdge[],
+): StackLayout {
   const categoryOrder = new Map(CATEGORIES.map((c, i) => [c.id, i]));
   const innerWidth = Math.max(width - 2 * STRIP_PAD, TILE_W + 2 * BOX_PAD);
 
@@ -45,6 +54,8 @@ export function layoutStack(items: Item[], width: number, layerOf: (toolId: stri
   for (const layer of LAYERS) {
     const inLayer = items.filter((item) => layerOf(item.toolId) === layer.id);
     if (inLayer.length === 0) continue;
+    const idsInLayer = new Set(inLayer.map((item) => item.toolId));
+    const hasDip = edges.some((e) => idsInLayer.has(e.source) && idsInLayer.has(e.target) && e.source !== e.target);
 
     const byCategory = new Map<string, Item[]>();
     for (const item of inLayer) byCategory.set(item.categoryId, [...(byCategory.get(item.categoryId) ?? []), item]);
@@ -103,7 +114,7 @@ export function layoutStack(items: Item[], width: number, layerOf: (toolId: stri
       rowY += rowHeight + BOX_GAP;
     }
 
-    const stripHeight = rowY - BOX_GAP + STRIP_PAD;
+    const stripHeight = rowY - BOX_GAP + STRIP_PAD + (hasDip ? SAME_STRIP_DIP_ROOM : 0);
     strips.push({ layer, x: 0, y, w: width, h: stripHeight, boxes });
     y += stripHeight + STRIP_GAP;
   }

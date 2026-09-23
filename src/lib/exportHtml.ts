@@ -90,7 +90,7 @@ async function buildStackSvg(input: Pick<ExportInput, "edges"> & { stack: NonNul
     const tool = getTool(id);
     return tool ? [{ toolId: id, categoryId: tool.categoryId }] : [];
   });
-  const layout = layoutStack(items, STACK_WIDTH, input.stack.layerOf);
+  const layout = layoutStack(items, STACK_WIDTH, input.stack.layerOf, input.edges);
   const routes = routeStackEdges(layout, input.edges);
   const stripMarkup = layout.strips
     .map((strip, index) => {

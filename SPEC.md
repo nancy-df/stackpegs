@@ -104,7 +104,7 @@ Tools are grouped like a tech-stack diagram: horizontal **layer strips** stacked
 - **Grey arrows by default.** Every connection is a thin grey line with an arrowhead and no label or color, so the strips stay calm. The **All connections** toolbar button (highlighted while on, on by default) can be switched off to hide the lines until you point at something.
 - **Color and labels on hover.** Pointing at (or focusing) a tool, pointing at a single line, or selecting a tool or connection lights up the relevant connections in their type color (2 px) with a label pill (Native, API, Data pipeline, Webhook, Automation, File export) and dims everything else. The label pills act as the legend, and the pointer can move from a line onto its label without losing it. Clicking a line or label selects it and opens its detail. There is no separate legend under the strips.
 - **Direction is preserved.** Lines are drawn from the upper strip to the lower one, so a connection whose data flows upward gets its arrowhead at the upper end. Two-way connections have both.
-- **Line routing.** Connection points are spread along a tile's edge so several lines do not land on one spot. Lines pass behind tiles. A connection between tools in the same strip dips below the row.
+- **Line routing.** Connection points are spread along a tile's edge so several lines do not land on one spot. Lines pass behind tiles. A connection between tools in the same strip dips below the row; that strip reserves extra room at its bottom so the dip stays inside its own background rather than floating in the gap beneath it.
 - The view scrolls vertically. It is laid out from the canvas width, so collapsing the side panels gives the strips more room.
 
 ### Free view

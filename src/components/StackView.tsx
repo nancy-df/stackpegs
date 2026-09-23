@@ -47,8 +47,9 @@ export function StackView(props: Props) {
         }),
         width,
         layerOf,
+        edges,
       ),
-    [toolIds, width, layerOf],
+    [toolIds, width, layerOf, edges],
   );
   const routes = useMemo(() => routeStackEdges(layout, edges), [layout, edges]);
 
