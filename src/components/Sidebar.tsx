@@ -12,6 +12,7 @@ type Props = {
   onAddTool: (toolId: string) => void;
   onAddCustom: (names: string, categoryId: string) => string | null;
   onCanvas: Set<string>;
+  onRemoveTool: (toolId: string) => void;
 };
 
 const OTHER_ID = "other";
@@ -35,7 +36,7 @@ const ROW =
 const ROW_IDLE =
   "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 lg:bg-transparent dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 lg:dark:bg-transparent";
 
-export function Sidebar({ open, categoryId, onSelectCategory, onAddTool, onAddCustom, onCanvas }: Props) {
+export function Sidebar({ open, categoryId, onSelectCategory, onAddTool, onAddCustom, onCanvas, onRemoveTool }: Props) {
   const [query, setQuery] = useState("");
   const [prefill, setPrefill] = useState({ text: "", nonce: 0 });
   // Which category's inline "Other" box is open (only one at a time).
@@ -173,6 +174,7 @@ export function Sidebar({ open, categoryId, onSelectCategory, onAddTool, onAddCu
               onCanvas={onCanvas}
               onAddCustom={onAddCustom}
               onAddTool={onAddTool}
+              onRemoveTool={onRemoveTool}
             />
           ) : (
             <>
@@ -194,6 +196,7 @@ export function Sidebar({ open, categoryId, onSelectCategory, onAddTool, onAddCu
                       added={onCanvas.has(tool.id)}
                       showCategory={searching}
                       onAdd={() => onAddTool(tool.id)}
+                      onRemove={() => onRemoveTool(tool.id)}
                     />
                   ))}
                   {!searching && (

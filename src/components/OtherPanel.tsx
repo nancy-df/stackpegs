@@ -9,9 +9,10 @@ type Props = {
   onCanvas: Set<string>;
   onAddCustom: (names: string, categoryId: string) => string | null;
   onAddTool: (toolId: string) => void;
+  onRemoveTool: (toolId: string) => void;
 };
 
-export function OtherPanel({ initialText, onCanvas, onAddCustom, onAddTool }: Props) {
+export function OtherPanel({ initialText, onCanvas, onAddCustom, onAddTool, onRemoveTool }: Props) {
   return (
     <div>
       <h2 className="mb-1 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
@@ -43,6 +44,7 @@ export function OtherPanel({ initialText, onCanvas, onAddCustom, onAddTool }: Pr
                 added={onCanvas.has(id)}
                 showCategory={false}
                 onAdd={() => onAddTool(id)}
+                onRemove={() => onRemoveTool(id)}
               />
             );
           })}

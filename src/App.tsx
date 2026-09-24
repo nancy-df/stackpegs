@@ -356,6 +356,7 @@ function Workspace() {
           onAddTool={(id) => addTool(id)}
           onAddCustom={addCustomTools}
           onCanvas={onCanvas}
+          onRemoveTool={removeTool}
         />
 
         <section ref={canvasRef} className="@container relative min-h-[420px] flex-1 lg:min-h-0" onDragOver={onDragOver} onDrop={onDrop}>

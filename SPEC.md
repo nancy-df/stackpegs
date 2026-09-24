@@ -70,7 +70,7 @@ The AI is told these tools are user-supplied and may be unfamiliar. For an unkno
 
 0. A search box at the top of the left panel finds tools across all categories by name, category or description (best name matches first). While a search is active the category pills are hidden and each result shows its category. Escape or the x button clears it.
 1. Left sidebar shows category pills grouped by area. Selecting one fills the tray below with that category's logos.
-2. Visitor drags a logo onto the canvas (or clicks it, which places it in a free spot; this also works on touch devices and by keyboard).
+2. Visitor drags a logo onto the canvas (or clicks it, which places it in a free spot; this also works on touch devices and by keyboard). A tile already on the canvas shows a green checkmark; hovering it swaps to a × that removes the tool from the canvas, the same way a canvas tile's own hover-x does.
 3. Visitor can switch categories and keep adding tools from any of them.
 4. When the canvas holds two or more tools, after an 800 ms pause a request is sent to the server. While it runs, a small translucent "Mapping integrations..." card with a spinner sits in the center of the canvas so it is obvious the app is working, without dominating it. The card also carries a line in blue, "You can continue dragging logos to the canvas.", because dropping more tools while it shows is allowed (a new request follows after the pause). It does not block clicks or drops, is announced to screen readers, and disappears when the result arrives. The Regenerate button also shows "Working...".
 5. The result appears as labelled arrows between tools and the tools are auto-arranged. The right panel shows an end-to-end summary and a clickable list of connections.
