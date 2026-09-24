@@ -118,9 +118,12 @@ export function StackView(props: Props) {
                   }`}
                   style={{ left: box.x, top: box.y, width: box.w, height: box.h }}
                 >
-                  <div className="flex items-center gap-1.5 px-2.5 pt-1.5 text-[10px] font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-                    <span className="size-1.5 rounded-full" style={{ background: category?.color ?? QUIET }} />
-                    {category?.label ?? "Other"}
+                  <div
+                    className="flex items-center gap-1.5 px-2.5 pt-1.5 text-[10px] font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400"
+                    title={category?.label ?? "Other"}
+                  >
+                    <span className="size-1.5 shrink-0 rounded-full" style={{ background: category?.color ?? QUIET }} />
+                    <span className="min-w-0 truncate">{category?.label ?? "Other"}</span>
                   </div>
                 </div>
               );
