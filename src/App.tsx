@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import {
   Background,
   Controls,
@@ -35,6 +36,7 @@ export default function App() {
   return (
     <ReactFlowProvider>
       <Workspace />
+      <Analytics />
     </ReactFlowProvider>
   );
 }
