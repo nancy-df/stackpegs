@@ -29,7 +29,7 @@ export function GuidanceBar({ busy, onRegenerate }: Props) {
           placeholder="Guide the next version, e.g. use Zapier between HubSpot and Jira"
           autoComplete="off"
           spellCheck={false}
-          className="w-full rounded-lg border border-transparent bg-slate-50 px-2.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:outline-none dark:bg-slate-800 dark:text-slate-100"
+          className="w-full rounded-lg border border-transparent bg-slate-50 px-2.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:outline-none dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-900"
         />
       </label>
       <button
